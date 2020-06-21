@@ -30,7 +30,15 @@ def get_random_string(length):
 
 @auth.verify_password
 def verify_password(username, password):
-    return username
+    sql ="SELECT token, admin FROM tokens WHERE username = '{0:}'".format(username)
+    if DB_CONNECTION is None:
+        restore_db_connection()
+    cursor = DB_CONNECTION.cursor()
+    cursor.execute(sql)
+    row = cursor.fetchone()
+    if password == row[0]:
+        return {'username': username, 'password': password, 'admin': row[1]}
+    return None
 
 @app.route('/', methods=['GET'])
 def hello_world():
