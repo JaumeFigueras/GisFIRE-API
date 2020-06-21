@@ -25,13 +25,15 @@ def get_random_string(length):
 
 @auth.verify_password
 def verify_password(username, password):
-    if username in users and \
-            check_password_hash(users.get(username), password):
-        return username
+    return username
 
 @app.route('/', methods=['GET'])
-@auth.login_required
 def hello_world():
+    return 'GisFIRE API:'
+
+@app.route('/token', methods=['POST'])
+@auth.login_required
+def token():
     return 'GisFIRE API:'
 
 if __name__ == "__main__":
