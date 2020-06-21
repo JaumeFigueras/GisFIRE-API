@@ -6,6 +6,7 @@ import psycopg2
 import configparser
 
 app = Flask(__name__)
+auth = HTTPBasicAuth()
 
 CONFIG = configparser.ConfigParser()
 CONFIG.read('/home/gisfire/gisfire.cfg')
