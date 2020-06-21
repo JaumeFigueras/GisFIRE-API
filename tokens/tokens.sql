@@ -33,5 +33,3 @@ WITH (
 ALTER TABLE public.access
   OWNER TO gisfireuser
 ;
-
-INSERT INTO public.tokens (username, token, andmin)
