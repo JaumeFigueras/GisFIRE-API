@@ -7,7 +7,7 @@ import configparser
 
 app = Flask(__name__)
 
-CONFIG = ConfigParser.ConfigParser()
+CONFIG = configparser.ConfigParser()
 CONFIG.read('/home/gisfire/gisfire.cfg')
 DB_CONNECTION = psycopg2.connect(host=CONFIG['database']['host'],
                                     port=CONFIG['database']['port'],
