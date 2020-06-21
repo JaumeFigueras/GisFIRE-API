@@ -18,3 +18,12 @@ $ sudo -i -u postgres
 $ createuser -p 5435 -P gisfireuser
 $ exit
 ```
+
+### 3. install
+
+```bash
+$ sudo apt-get install python3-flask-*
+$ sudo pip3 install Flask-HTTPAuth
+$ sudo pip3 install configparser
+$ exit
+```

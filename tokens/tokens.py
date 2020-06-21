@@ -3,7 +3,7 @@ from flask_httpauth import HTTPBasicAuth
 
 import random
 import psycopg2
-import ConfigParser
+import configparser
 
 app = Flask(__name__)
 
