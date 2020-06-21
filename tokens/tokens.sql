@@ -4,7 +4,7 @@ CREATE TABLE public.tokens
    username varchar(50),
    token varchar(64),
    admin boolean,
-   valid_until timestamp with time zone,
+   valid_until timestamp with time zone DEFAULT NULL,
    ts timestamp with time zone DEFAULT (now() at time zone 'utc'),
    CONSTRAINT pk_tokens PRIMARY KEY (id),
    CONSTRAINT uq_tokens_username UNIQUE (username)
@@ -33,3 +33,5 @@ WITH (
 ALTER TABLE public.access
   OWNER TO gisfireuser
 ;
+
+INSERT INTO public.tokens (username, token, andmin)

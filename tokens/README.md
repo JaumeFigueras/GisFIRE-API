@@ -6,11 +6,7 @@
 
 ```bash
 $ sudo -i -u postgres
-$ createdb -p 5435 -E UTF8 -O gisfireuser meteocat
-$ psql -p 5435 -d meteocat
-# CREATE EXTENSION postgis;
-# CREATE EXTENSION postgis_topology;
-# ^d
+$ createdb -p 5435 -E UTF8 -O gisfireuser gisfire
 $ exit
 ```
 
@@ -23,7 +19,7 @@ $ exit
 $ sudo -i -u postgres
 $ createuser -p 5435 -P remotegisfireuser
 $ psql -p 5435 -d meteocat
-# GRANT CONNECT ON DATABASE meteocat TO remotegisfireuser;
+# GRANT CONNECT ON DATABASE tokens TO remotegisfireuser;
 # GRANT USAGE ON SCHEMA public TO remotegisfireuser;
 # GRANT SELECT ON xdde_requests TO remotegisfireuser;
 # GRANT SELECT ON ALL TABLES IN SCHEMA public TO remotegisfireuser;
