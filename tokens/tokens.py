@@ -15,11 +15,11 @@ CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ:_!$€@"
 DB_CONNECTION = None
 
 def restore_db_connection():
-    DB_CONNECTION = psycopg2.connect(host=CONFIG['database']['host'],
-                                        port=CONFIG['database']['port'],
-                                        database=CONFIG['database']['database'],
-                                        user=CONFIG['database']['user'],
-                                        password=CONFIG['database']['password'])
+    global DB_CONNECTION = psycopg2.connect(host=CONFIG['database']['host'],
+                                            port=CONFIG['database']['port'],
+                                            database=CONFIG['database']['database'],
+                                            user=CONFIG['database']['user'],
+                                            password=CONFIG['database']['password'])
 
 def get_random_string(length):
     token = ""
