@@ -6,11 +6,15 @@ CREATE TABLE public.tokens
    admin boolean,
    valid_until timestamp with time zone,
    ts timestamp with time zone DEFAULT (now() at time zone 'utc'),
-   CONSTRAINT pk_tokens PRIMARY KEY (id)
+   CONSTRAINT pk_tokens PRIMARY KEY (id),
+   CONSTRAINT uq_tokens_username UNIQUE (username)
 )
 WITH (
   OIDS = FALSE
 )
+;
+ALTER TABLE public.xdde_requests
+  OWNER TO gisfireuser
 ;
 
 CREATE TABLE public.access
@@ -25,4 +29,7 @@ CREATE TABLE public.access
 WITH (
   OIDS = FALSE
 )
+;
+ALTER TABLE public.xdde_requests
+  OWNER TO gisfireuser
 ;
