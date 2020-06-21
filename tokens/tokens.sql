@@ -13,7 +13,7 @@ WITH (
   OIDS = FALSE
 )
 ;
-ALTER TABLE public.xdde_requests
+ALTER TABLE public.tokens
   OWNER TO gisfireuser
 ;
 
@@ -30,6 +30,6 @@ WITH (
   OIDS = FALSE
 )
 ;
-ALTER TABLE public.xdde_requests
+ALTER TABLE public.access
   OWNER TO gisfireuser
 ;
