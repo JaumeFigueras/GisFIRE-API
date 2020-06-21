@@ -29,7 +29,7 @@ def verify_password(username, password):
 
 @app.route('/', methods=['GET'])
 def hello_world():
-    return 'GisFIRE API:'
+    return 'GisFIRE API: tokens'
 
 @app.route('/token', methods=['POST'])
 @auth.login_required
