@@ -14,7 +14,7 @@ CONFIG.read('/home/gisfire/gisfire.cfg')
 CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ:_!$€@"
 DB_CONNECTION = None
 
-def restore_db_connection()
+def restore_db_connection():
     DB_CONNECTION = psycopg2.connect(host=CONFIG['database']['host'],
                                         port=CONFIG['database']['port'],
                                         database=CONFIG['database']['database'],
