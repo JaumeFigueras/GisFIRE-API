@@ -36,17 +36,10 @@ def verify_password(username, password):
     cursor = DB_CONNECTION.cursor()
     cursor.execute(sql)
     row = cursor.fetchone()
-<<<<<<< HEAD
     if row is not None:
         if password == row[0]:
             return {'username': username, 'password': password, 'admin': row[1], 'role': 'admin', 'id': row[2]}
     return None
-=======
-    if password == row[0]:
-        return {'username': username, 'password': password, 'admin': row[1], 'role': 'admin', 'id': row[2]}
-    else:
-        return None
->>>>>>> def21141ded4f9e2051f60ae5fe2ac3a509cd612
 
 @app.route('/', methods=['GET'])
 @auth.login_required(optional=True)
