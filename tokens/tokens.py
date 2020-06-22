@@ -30,7 +30,7 @@ def get_random_string(length):
 
 @auth.verify_password
 def verify_password(username, password):
-    sql ="SELECT token, admin, import ipdb; ipdb.set_trace() FROM tokens WHERE username = '{0:}'".format(username)
+    sql ="SELECT token, admin, id FROM tokens WHERE username = '{0:}'".format(username)
     if DB_CONNECTION is None:
         restore_db_connection()
     cursor = DB_CONNECTION.cursor()
