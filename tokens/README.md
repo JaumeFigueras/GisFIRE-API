@@ -60,3 +60,12 @@ add config to site configuration
   </Directory>
 
 ```
+
+### 8. WSGI directives
+
+To allow HTTP Basic Auth
+
+```bash
+WSGIPassAuthorization on
+
+```
