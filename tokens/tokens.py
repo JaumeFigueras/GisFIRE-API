@@ -37,9 +37,7 @@ def verify_password(username, password):
     cursor.execute(sql)
     row = cursor.fetchone()
     if password == row[0]:
-        user = {'username': username, 'password': password, 'admin': row[1], 'role': 'admin', 'id': row[2]}
-        cursor.close()
-        return user
+        return {'username': username, 'password': password, 'admin': row[1], 'role': 'admin', 'id': row[2]}
     else:
         return None
 
