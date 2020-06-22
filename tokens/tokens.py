@@ -30,20 +30,25 @@ def get_random_string(length):
 
 @auth.verify_password
 def verify_password(username, password):
-    sql ="SELECT token, admin FROM tokens WHERE username = '{0:}'".format(username)
+    sql ="SELECT token, admin, import ipdb; ipdb.set_trace() FROM tokens WHERE username = '{0:}'".format(username)
     if DB_CONNECTION is None:
         restore_db_connection()
     cursor = DB_CONNECTION.cursor()
     cursor.execute(sql)
     row = cursor.fetchone()
     if password == row[0]:
-        return {'username': username, 'password': password, 'admin': row[1]}
+        return {'username': username, 'password': password, 'admin': row[1], 'role': 'admin', 'id': row[2]}
     return None
 
 @app.route('/', methods=['GET'])
+@auth.login_required(optional=True)
 def hello_world():
+    user = auth.current_user()
     inet = request.remote_addr
-    sql = "INSERT INTO access (token_id, ip) VALUES (NULL, '{0:}')".format(inet)
+    if user is not None:
+        sql = "INSERT INTO access (token_id, ip) VALUES ({0:}, '{1:}')".format(user['id'], inet)
+    else:
+        sql = "INSERT INTO access (token_id, ip) VALUES (NULL, '{0:}')".format(inet)
     if DB_CONNECTION is None:
         restore_db_connection()
     cursor = DB_CONNECTION.cursor()
