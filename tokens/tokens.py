@@ -81,7 +81,7 @@ def token():
         valid_until = datettime.datetime(request.json['valid_until'])
     else:
         valid_until = None
-    password = get_random_string()
+    password = get_random_string(64)
     sql = sql = "INSERT INTO access (token_id, ip) VALUES ({0:}, '{1:}')".format(user['id'], inet)
     if DB_CONNECTION.closed:
         restore_db_connection()
