@@ -12,7 +12,11 @@ auth = HTTPBasicAuth()
 CONFIG = configparser.ConfigParser()
 CONFIG.read('/home/gisfire/gisfire.cfg')
 CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ:_!$€@"
-DB_CONNECTION = None
+DB_CONNECTION = psycopg2.connect(host=CONFIG['database']['host'],
+                                    port=CONFIG['database']['port'],
+                                    database=CONFIG['database']['database'],
+                                    user=CONFIG['database']['user'],
+                                    password=CONFIG['database']['password'])
 
 def restore_db_connection():
     global DB_CONNECTION
@@ -31,7 +35,7 @@ def get_random_string(length):
 @auth.verify_password
 def verify_password(username, password):
     sql ="SELECT token, admin, id FROM tokens WHERE username = '{0:}'".format(username)
-    if DB_CONNECTION is None or DB_CONNECTION.closed:
+    if DB_CONNECTION.closed:
         restore_db_connection()
     cursor = DB_CONNECTION.cursor()
     cursor.execute(sql)
@@ -50,7 +54,7 @@ def hello_world():
         sql = "INSERT INTO access (token_id, ip) VALUES ({0:}, '{1:}')".format(user['id'], inet)
     else:
         sql = "INSERT INTO access (token_id, ip) VALUES (NULL, '{0:}')".format(inet)
-    if DB_CONNECTION is None or DB_CONNECTION.closed:
+    if DB_CONNECTION.closed:
         restore_db_connection()
     cursor = DB_CONNECTION.cursor()
     cursor.execute(sql)
@@ -65,7 +69,7 @@ def token():
 
 @app.teardown_appcontext
 def close_db(error):
-    if DB_CONNECTION is not None and  not DB_CONNECTION.closed:
+    if not DB_CONNECTION.closed:
         DB_CONNECTION.close()
 
 
