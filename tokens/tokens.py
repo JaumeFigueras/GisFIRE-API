@@ -12,11 +12,7 @@ auth = HTTPBasicAuth()
 CONFIG = configparser.ConfigParser()
 CONFIG.read('/home/gisfire/gisfire.cfg')
 CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ:_!$€@"
-DB_CONNECTION = psycopg2.connect(host=CONFIG['database']['host'],
-                                    port=CONFIG['database']['port'],
-                                    database=CONFIG['database']['database'],
-                                    user=CONFIG['database']['user'],
-                                    password=CONFIG['database']['password'])
+DB_CONNECTION = None
 
 def restore_db_connection():
     global DB_CONNECTION
@@ -25,6 +21,7 @@ def restore_db_connection():
                                         database=CONFIG['database']['database'],
                                         user=CONFIG['database']['user'],
                                         password=CONFIG['database']['password'])
+restore_db_connection()
 
 def get_random_string(length):
     token = ""
