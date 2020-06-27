@@ -97,7 +97,7 @@ def token():
     username = request.json['username']
     # If valid_until format is not valid a bad request is thrown
     try:
-        valid_until = datettime.datetime(request.json['valid_until'])
+        valid_until = datetime.datetime(request.json['valid_until'])
     except:
         return jsonify({'status_code': 400, 'message': 'invalid valid_until date format'}), 400
     # If valid_until is not grater than today a bad request is thrown
