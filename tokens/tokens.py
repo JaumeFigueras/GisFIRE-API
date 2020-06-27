@@ -40,7 +40,7 @@ def verify_password(username, password):
         return None
     sql ="SELECT token, admin, id FROM tokens WHERE username = %s"
     cursor = g.DB_CONNECTION.cursor()
-    cursor.execute(sql, username)
+    cursor.execute(sql, (username, ))
     row = cursor.fetchone()
     if row is not None:
         if password == row[0]:
