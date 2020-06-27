@@ -13,16 +13,11 @@ auth = HTTPBasicAuth()
 CONFIG = configparser.ConfigParser()
 CONFIG.read('/home/gisfire/gisfire.cfg')
 CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ:_!$€@"
-DB_CONNECTION = None
-
-def restore_db_connection():
-    global DB_CONNECTION
-    DB_CONNECTION = psycopg2.connect(host=CONFIG['database']['host'],
-                                        port=CONFIG['database']['port'],
-                                        database=CONFIG['database']['database'],
-                                        user=CONFIG['database']['user'],
-                                        password=CONFIG['database']['password'])
-restore_db_connection()
+DB_CONNECTION = psycopg2.connect(host=CONFIG['database']['host'],
+                                    port=CONFIG['database']['port'],
+                                    database=CONFIG['database']['database'],
+                                    user=CONFIG['database']['user'],
+                                    password=CONFIG['database']['password'])
 
 def get_random_string(length):
     token = ""
@@ -40,8 +35,11 @@ def verify_password(username, password):
     row = cursor.fetchone()
     if row is not None:
         if password == row[0]:
-            return {'username': username, 'password': password, 'admin': row[1], 'id': row[2]}
-    return None
+            user = {'username': username, 'password': password, 'admin': row[1], 'id': row[2]}
+        else:
+            user = None
+    cursor.close()
+    return user
 
 @auth.get_user_roles
 def get_user_roles(user):
@@ -60,8 +58,6 @@ def hello_world():
         sql = "INSERT INTO access (token_id, ip) VALUES ({0:}, '{1:}')".format(user['id'], inet)
     else:
         sql = "INSERT INTO access (token_id, ip) VALUES (NULL, '{0:}')".format(inet)
-    if DB_CONNECTION.closed:
-        restore_db_connection()
     cursor = DB_CONNECTION.cursor()
     cursor.execute(sql)
     DB_CONNECTION.commit()
@@ -83,15 +79,11 @@ def token():
         valid_until = None
     password = get_random_string(64)
     sql = sql = "INSERT INTO access (token_id, ip) VALUES ({0:}, '{1:}')".format(user['id'], inet)
-    if DB_CONNECTION.closed:
-        restore_db_connection()
     cursor = DB_CONNECTION.cursor()
     cursor.execute(sql)
     DB_CONNECTION.commit()
     if valid_until is not None:
         sql = sql = "INSERT INTO tokens (username, token, admin, valid_until) VALUES (%s, '{0}', FALSE, {1})".format(password, valid_until.strftime("%Y-%m-%dT%H:%M:%SZ"))
-        if DB_CONNECTION.closed:
-            restore_db_connection()
         cursor = DB_CONNECTION.cursor()
         cursor.execute(sql, (username))
     else:
