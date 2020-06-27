@@ -36,11 +36,11 @@ def close_db(error):
 
 @app.errorhandler(401)
 def page_not_found(error):
-    return jsonify({}), 401
+    return jsonify({'status_code': 401}), 401
 
 @app.errorhandler(404)
 def page_not_found(error):
-    return jsonify({}), 404
+    return jsonify({'status_code': 404}), 404
 
 @auth.verify_password
 def verify_password(username, password):
@@ -76,29 +76,29 @@ def hello_world():
         if cursor.rowcount != 1:
             cursor.close()
             g.DB_CONNECTION.rollback()
-            return jsonify({}), 500
+            return jsonify({'status_code': 500}), 500
         g.DB_CONNECTION.commit()
         cursor.close()
         return jsonify({})
     except:
-        return jsonify({}), 500
+        return jsonify({'status_code': 500}), 500
 
 @app.route('/token', methods=['POST'])
 @auth.login_required(role='admin')
 def token():
     # If there aren't all the required paramaters a bad request is thrown
     if 'username' not in request.json or 'valid_until' not in request.json:
-        return jsonify({'message': 'username and valid_until parameters are expected'}), 400
+        return jsonify({'status_code': 400, 'message': 'username and valid_until parameters are expected'}), 400
     inet = request.remote_addr
     username = request.json['username']
     # If valid_until format is not valid a bad request is thrown
     try:
         valid_until = datettime.datetime(request.json['valid_until'])
     except:
-        return jsonify({'message': 'invalid valid_until date format'}), 400
+        return jsonify({'status_code': 400, 'message': 'invalid valid_until date format'}), 400
     # If valid_until is not grater than today a bad request is thrown
     if datetime.datetime.utcnow() > valid_until:
-        return jsonify({'message': 'invalid valid_until date value'}), 400
+        return jsonify({'status_code': 400, 'message': 'invalid valid_until date value'}), 400
     password = get_random_string(64)
     # Build queries
     sql_access = "INSERT INTO access (token_id, ip, url) VALUES ({0:}, '{1:}', '/token')".format(user['id'], inet)
@@ -109,17 +109,17 @@ def token():
         if cursor.rowcount != 1:
             cursor.close()
             g.DB_CONNECTION.rollback()
-            return jsonify({}), 500
+            return jsonify({'status_code': 500}), 500
         cursor.execute(sql_access)
         if cursor.rowcount != 1:
             cursor.close()
             g.DB_CONNECTION.rollback()
-            return jsonify({}), 500
+            return jsonify({'status_code': 500}), 500
         g.DB_CONNECTION.commit()
         cursor.close()
         return jsonify({'username': username, 'token': password})
     except:
-        return jsonify({}), 500
+        return jsonify({'status_code': 500}), 500
 
 if __name__ == "__main__":
     app.run()
