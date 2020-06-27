@@ -56,14 +56,13 @@ def get_user_roles(user):
 @app.route('/', methods=['GET'])
 @auth.login_required(optional=True)
 def hello_world():
-    #TODO: Add url in sql
     #TODO: jsonify
     user = auth.current_user()
     inet = request.remote_addr
     if user is not None:
-        sql = "INSERT INTO access (token_id, ip) VALUES ({0:}, '{1:}')".format(user['id'], inet)
+        sql = "INSERT INTO access (token_id, ip, url) VALUES ({0:}, '{1:}', '/')".format(user['id'], inet)
     else:
-        sql = "INSERT INTO access (token_id, ip) VALUES (NULL, '{0:}')".format(inet)
+        sql = "INSERT INTO access (token_id, ip) VALUES (NULL, '{0:}', '/')".format(inet)
     cursor = g.DB_CONNECTION.cursor()
     cursor.execute(sql)
     g.DB_CONNECTION.commit()
@@ -73,7 +72,6 @@ def hello_world():
 @app.route('/token', methods=['POST'])
 @auth.login_required(role='admin')
 def token():
-    #TODO: Add url in sql
     #TODO: Check dates and values
     #TODO: pass
     #TODO: jsonify
@@ -84,7 +82,7 @@ def token():
     else:
         valid_until = None
     password = get_random_string(64)
-    sql = sql = "INSERT INTO access (token_id, ip) VALUES ({0:}, '{1:}')".format(user['id'], inet)
+    sql = sql = "INSERT INTO access (token_id, ip, url) VALUES ({0:}, '{1:}', '/token')".format(user['id'], inet)
     cursor = g.DB_CONNECTION.cursor()
     cursor.execute(sql)
     g.DB_CONNECTION.commit()
