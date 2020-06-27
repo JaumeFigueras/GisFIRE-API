@@ -8,6 +8,7 @@ import random
 import psycopg2
 import configparser
 import datetime
+import dateutil.parser
 
 CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ:_!$€@"
 
@@ -97,10 +98,7 @@ def token():
     username = request.json['username']
     # If valid_until format is not valid a bad request is thrown
     try:
-        out = open("/home/gisfire/out.txt","a")
-        out.write("valid_until:" + request.json['valid_until'] + "\n")
-        out.close()
-        valid_until = datetime.datetime(request.json['valid_until'])
+        valid_until = dateutil.parser.parse(request.json['valid_until'])
     except:
         return jsonify({'status_code': 400, 'message': 'invalid valid_until date format'}), 400
     # If valid_until is not grater than today a bad request is thrown
@@ -130,3 +128,9 @@ def token():
 
 if __name__ == "__main__":
     app.run()
+
+"""
+out = open("/home/gisfire/out.txt","a")
+out.write("valid_until:" + request.json['valid_until'] + "\n")
+out.close()
+"""
