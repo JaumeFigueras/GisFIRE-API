@@ -36,7 +36,7 @@ def close_db(error):
 
 @auth.verify_password
 def verify_password(username, password):
-    sql ="SELECT token, admin, id FROM tokens WHERE username = '%s'"
+    sql ="SELECT token, admin, id FROM tokens WHERE username = ?"
     cursor = g.DB_CONNECTION.cursor()
     cursor.execute(sql, (username))
     row = cursor.fetchone()
