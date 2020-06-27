@@ -34,17 +34,21 @@ def config_setup():
 def close_db(error):
     g.DB_CONNECTION.close()
 
+@app.errorhandler(401)
+def page_not_found(error):
+    return jsonify({}), 401
+
 @auth.verify_password
 def verify_password(username, password):
     if username is None or username == '':
         return None
-    sql ="SELECT token, admin, id FROM tokens WHERE username = %s"
+    sql ="SELECT token, admin, id, vlid_until FROM tokens WHERE username = %s"
     cursor = g.DB_CONNECTION.cursor()
     cursor.execute(sql, (username, ))
     row = cursor.fetchone()
     if row is not None:
         if password == row[0]:
-            user = {'username': username, 'password': password, 'admin': row[1], 'id': row[2]}
+            user = {'username': username, 'password': password, 'admin': row[1], 'id': row[2], 'valid_until': row[3]}
         else:
             user = None
     cursor.close()
@@ -62,36 +66,56 @@ def hello_world():
     user = auth.current_user()
     inet = request.remote_addr
     sql = "INSERT INTO access (token_id, ip, url) VALUES ({0:}, '{1:}', '/')".format(user['id'] if user is not None else 'NULL', inet)
-    cursor = g.DB_CONNECTION.cursor()
-    cursor.execute(sql)
-    g.DB_CONNECTION.commit()
-    cursor.close()
-    return jsonify({})
+    try:
+        cursor = g.DB_CONNECTION.cursor()
+        cursor.execute(sql)
+        if cursor.rowcount != 1:
+            cursor.close()
+            g.DB_CONNECTION.rollback()
+            return jsonify({}), 500
+        g.DB_CONNECTION.commit()
+        cursor.close()
+        return jsonify({})
+    except:
+        return jsonify({}), 500
 
 @app.route('/token', methods=['POST'])
 @auth.login_required(role='admin')
 def token():
-    #TODO: Check dates and values
-    #TODO: pass
+    # If there aren't all the required paramaters a bad request is thrown
+    if 'username' not in request.json or 'valid_until' not in request.json:
+        return jsonify('message': 'username and valid_until parameters are expected'), 400
     inet = request.remote_addr
     username = request.json['username']
-    if 'valid_until' in request.json:
+    # If valid_until format is not valid a bad request is thrown
+    try:
         valid_until = datettime.datetime(request.json['valid_until'])
-    else:
-        valid_until = None
+    except:
+        return jsonify('message': 'invalid valid_until date format'), 400
+    # If valid_until is not grater than today a bad request is thrown
+    if datetime.datetime.utcnow() > valid_until:
+        return jsonify('message': 'invalid valid_until date value'), 400
     password = get_random_string(64)
-    sql = sql = "INSERT INTO access (token_id, ip, url) VALUES ({0:}, '{1:}', '/token')".format(user['id'], inet)
-    cursor = g.DB_CONNECTION.cursor()
-    cursor.execute(sql)
-    g.DB_CONNECTION.commit()
-    if valid_until is not None:
-        sql = sql = "INSERT INTO tokens (username, token, admin, valid_until) VALUES (%s, '{0}', FALSE, {1})".format(password, valid_until.strftime("%Y-%m-%dT%H:%M:%SZ"))
+    # Build queries
+    sql_access = "INSERT INTO access (token_id, ip, url) VALUES ({0:}, '{1:}', '/token')".format(user['id'], inet)
+    sql_tokens = "INSERT INTO tokens (username, token, admin, valid_until) VALUES (%s, '{0}', FALSE, '{1}')".format(password, valid_until.strftime("%Y-%m-%dT%H:%M:%SZ"))
+    try:
         cursor = g.DB_CONNECTION.cursor()
-        cursor.execute(sql, (username))
-    else:
-        pass
-    g.DB_CONNECTION.commit()
-    return jsonify({'token': password})
-
+        cursor.execute(sql_tokens)
+        if cursor.rowcount != 1:
+            cursor.close()
+            g.DB_CONNECTION.rollback()
+            return jsonify({}), 500
+        cursor.execute(sql_access)
+        if cursor.rowcount != 1:
+            cursor.close()
+            g.DB_CONNECTION.rollback()
+            return jsonify({}), 500
+        g.DB_CONNECTION.commit()
+        cursor.close()
+        return jsonify({'username': username, 'token': password})
+    except:
+        return jsonify({}), 500
+        
 if __name__ == "__main__":
     app.run()
