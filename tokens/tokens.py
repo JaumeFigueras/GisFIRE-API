@@ -97,6 +97,9 @@ def token():
     username = request.json['username']
     # If valid_until format is not valid a bad request is thrown
     try:
+        out = open("/home/gisfire/out.txt","a")
+        out.write(request.json['valid_until'])
+        out.close()
         valid_until = datetime.datetime(request.json['valid_until'])
     except:
         return jsonify({'status_code': 400, 'message': 'invalid valid_until date format'}), 400
