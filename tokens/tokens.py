@@ -1,23 +1,17 @@
 from flask import Flask
 from flask_httpauth import HTTPBasicAuth
 from flask import request
+from flask import g
 
 import random
 import psycopg2
 import configparser
 import datetime
 
+CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ:_!$€@"
+
 app = Flask(__name__)
 auth = HTTPBasicAuth()
-
-CONFIG = configparser.ConfigParser()
-CONFIG.read('/home/gisfire/gisfire.cfg')
-CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ:_!$€@"
-DB_CONNECTION = psycopg2.connect(host=CONFIG['database']['host'],
-                                    port=CONFIG['database']['port'],
-                                    database=CONFIG['database']['database'],
-                                    user=CONFIG['database']['user'],
-                                    password=CONFIG['database']['password'])
 
 def get_random_string(length):
     token = ""
@@ -25,13 +19,25 @@ def get_random_string(length):
         token += CHARACTERS[random.randint(0, length-1)]
     return token
 
+@app.before_request
+def config_setup():
+    g.CONFIG = configparser.ConfigParser()
+    g.CONFIG.read('/home/gisfire/gisfire.cfg')
+    g.DB_CONNECTION = psycopg2.connect(host=g.CONFIG['database']['host'],
+                                        port=g.CONFIG['database']['port'],
+                                        database=g.CONFIG['database']['database'],
+                                        user=g.CONFIG['database']['user'],
+                                        password=g.CONFIG['database']['password'])
+
+@app.teardown_appcontext
+def close_db(error):
+    g.DB_CONNECTION.close()
+
 @auth.verify_password
 def verify_password(username, password):
-    sql ="SELECT token, admin, id FROM tokens WHERE username = '{0:}'".format(username)
-    if DB_CONNECTION.closed:
-        restore_db_connection()
-    cursor = DB_CONNECTION.cursor()
-    cursor.execute(sql)
+    sql ="SELECT token, admin, id FROM tokens WHERE username = '%s'"
+    cursor = g.DB_CONNECTION.cursor()
+    cursor.execute(sql, (username))
     row = cursor.fetchone()
     if row is not None:
         if password == row[0]:
@@ -58,9 +64,9 @@ def hello_world():
         sql = "INSERT INTO access (token_id, ip) VALUES ({0:}, '{1:}')".format(user['id'], inet)
     else:
         sql = "INSERT INTO access (token_id, ip) VALUES (NULL, '{0:}')".format(inet)
-    cursor = DB_CONNECTION.cursor()
+    cursor = g.DB_CONNECTION.cursor()
     cursor.execute(sql)
-    DB_CONNECTION.commit()
+    g.DB_CONNECTION.commit()
     cursor.close()
     return 'GisFIRE API: tokens'
 
@@ -79,22 +85,17 @@ def token():
         valid_until = None
     password = get_random_string(64)
     sql = sql = "INSERT INTO access (token_id, ip) VALUES ({0:}, '{1:}')".format(user['id'], inet)
-    cursor = DB_CONNECTION.cursor()
+    cursor = g.DB_CONNECTION.cursor()
     cursor.execute(sql)
-    DB_CONNECTION.commit()
+    g.DB_CONNECTION.commit()
     if valid_until is not None:
         sql = sql = "INSERT INTO tokens (username, token, admin, valid_until) VALUES (%s, '{0}', FALSE, {1})".format(password, valid_until.strftime("%Y-%m-%dT%H:%M:%SZ"))
-        cursor = DB_CONNECTION.cursor()
+        cursor = g.DB_CONNECTION.cursor()
         cursor.execute(sql, (username))
     else:
         pass
-    DB_CONNECTION.commit()
+    g.DB_CONNECTION.commit()
     return 'GisFIRE API:'
-
-@app.teardown_appcontext
-def close_db(error):
-    if not DB_CONNECTION.closed:
-        DB_CONNECTION.close()
 
 if __name__ == "__main__":
     app.run()
