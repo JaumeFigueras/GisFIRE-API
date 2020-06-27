@@ -84,17 +84,17 @@ def hello_world():
 def token():
     # If there aren't all the required paramaters a bad request is thrown
     if 'username' not in request.json or 'valid_until' not in request.json:
-        return jsonify('message': 'username and valid_until parameters are expected'), 400
+        return jsonify({'message': 'username and valid_until parameters are expected'}), 400
     inet = request.remote_addr
     username = request.json['username']
     # If valid_until format is not valid a bad request is thrown
     try:
         valid_until = datettime.datetime(request.json['valid_until'])
     except:
-        return jsonify('message': 'invalid valid_until date format'), 400
+        return jsonify({'message': 'invalid valid_until date format'}), 400
     # If valid_until is not grater than today a bad request is thrown
     if datetime.datetime.utcnow() > valid_until:
-        return jsonify('message': 'invalid valid_until date value'), 400
+        return jsonify({'message': 'invalid valid_until date value'}), 400
     password = get_random_string(64)
     # Build queries
     sql_access = "INSERT INTO access (token_id, ip, url) VALUES ({0:}, '{1:}', '/token')".format(user['id'], inet)
@@ -116,6 +116,6 @@ def token():
         return jsonify({'username': username, 'token': password})
     except:
         return jsonify({}), 500
-        
+
 if __name__ == "__main__":
     app.run()
