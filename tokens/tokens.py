@@ -98,7 +98,7 @@ def token():
     # If valid_until format is not valid a bad request is thrown
     try:
         out = open("/home/gisfire/out.txt","a")
-        out.write(request.json['valid_until'])
+        out.write("valid_until:" + request.json['valid_until'] + "\n")
         out.close()
         valid_until = datetime.datetime(request.json['valid_until'])
     except:
