@@ -2,6 +2,7 @@ from flask import Flask
 from flask_httpauth import HTTPBasicAuth
 from flask import request
 from flask import g
+from flask import jsonify
 
 import random
 import psycopg2
@@ -56,7 +57,6 @@ def get_user_roles(user):
 @app.route('/', methods=['GET'])
 @auth.login_required(optional=True)
 def hello_world():
-    #TODO: jsonify
     user = auth.current_user()
     inet = request.remote_addr
     if user is not None:
@@ -67,14 +67,13 @@ def hello_world():
     cursor.execute(sql)
     g.DB_CONNECTION.commit()
     cursor.close()
-    return 'GisFIRE API: tokens'
+    return jsonify({})
 
 @app.route('/token', methods=['POST'])
 @auth.login_required(role='admin')
 def token():
     #TODO: Check dates and values
     #TODO: pass
-    #TODO: jsonify
     inet = request.remote_addr
     username = request.json['username']
     if 'valid_until' in request.json:
@@ -93,7 +92,7 @@ def token():
     else:
         pass
     g.DB_CONNECTION.commit()
-    return 'GisFIRE API:'
+    return jsonify({'token': password})
 
 if __name__ == "__main__":
     app.run()
