@@ -38,6 +38,10 @@ def close_db(error):
 def page_not_found(error):
     return jsonify({}), 401
 
+@app.errorhandler(404)
+def page_not_found(error):
+    return jsonify({}), 404
+
 @auth.verify_password
 def verify_password(username, password):
     if username is None or username == '':
