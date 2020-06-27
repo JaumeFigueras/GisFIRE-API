@@ -3,6 +3,7 @@ from flask_httpauth import HTTPBasicAuth
 from flask import request
 from flask import g
 from flask import jsonify
+from werkzeug.exceptions import Unauthorized
 
 import random
 import psycopg2
@@ -19,6 +20,13 @@ def get_random_string(length):
     for i in range(length):
         token += CHARACTERS[random.randint(0, length-1)]
     return token
+
+class MyUnauthorized(Unauthorized):
+    descriptioni = jsonify({'status_code': 401})
+    def get_headers(self, environ):
+        return [('Content-Type', 'application/json'),
+            ('WWW-Authenticate', 'Basic realm="Login required"')]
+abort.mapping.update({401: MyUnauthorized})
 
 @app.before_request
 def config_setup():
