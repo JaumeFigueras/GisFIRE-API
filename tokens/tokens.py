@@ -94,6 +94,7 @@ def token():
     # If there aren't all the required paramaters a bad request is thrown
     if 'username' not in request.json or 'valid_until' not in request.json:
         return jsonify({'status_code': 400, 'message': 'username and valid_until parameters are expected'}), 400
+    user = auth.current_user()
     inet = request.remote_addr
     username = request.json['username']
     # If valid_until format is not valid a bad request is thrown
