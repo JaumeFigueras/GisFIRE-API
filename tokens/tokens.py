@@ -115,17 +115,17 @@ def token():
         if cursor.rowcount != 1:
             cursor.close()
             g.DB_CONNECTION.rollback()
-            return jsonify({'status_code': 500}), 500
+            return jsonify({'status_code': 500, 'message': 'failed insert in log information'}), 500
         cursor.execute(sql_access)
         if cursor.rowcount != 1:
             cursor.close()
             g.DB_CONNECTION.rollback()
-            return jsonify({'status_code': 500}), 500
+            return jsonify({'status_code': 500, 'message': 'failed creating new user token'}), 500
         g.DB_CONNECTION.commit()
         cursor.close()
         return jsonify({'username': username, 'token': password})
     except:
-        return jsonify({'status_code': 500}), 500
+        return jsonify({'status_code': 500, 'message': 'sql exception'}), 500
 
 if __name__ == "__main__":
     app.run()
