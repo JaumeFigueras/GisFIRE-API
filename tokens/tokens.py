@@ -111,16 +111,16 @@ def token():
     sql_tokens = "INSERT INTO tokens (username, token, admin, valid_until) VALUES (%s, '{0}', FALSE, '{1}')".format(password, valid_until.strftime("%Y-%m-%dT%H:%M:%SZ"))
     try:
         cursor = g.DB_CONNECTION.cursor()
-        cursor.execute(sql_tokens)
-        if cursor.rowcount != 1:
-            cursor.close()
-            g.DB_CONNECTION.rollback()
-            return jsonify({'status_code': 500, 'message': 'failed insert in log information'}), 500
-        cursor.execute(sql_access)
+        cursor.execute(sql_tokens, (username, ))
         if cursor.rowcount != 1:
             cursor.close()
             g.DB_CONNECTION.rollback()
             return jsonify({'status_code': 500, 'message': 'failed creating new user token'}), 500
+        cursor.execute(sql_access)
+        if cursor.rowcount != 1:
+            cursor.close()
+            g.DB_CONNECTION.rollback()
+            return jsonify({'status_code': 500, 'message': 'failed creating log information'}), 500
         g.DB_CONNECTION.commit()
         cursor.close()
         return jsonify({'username': username, 'token': password})
