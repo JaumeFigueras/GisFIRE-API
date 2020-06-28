@@ -116,11 +116,7 @@ def token():
             cursor.close()
             g.DB_CONNECTION.rollback()
             return jsonify({'status_code': 500, 'message': 'failed creating new user token'}), 500
-<<<<<<< HEAD
-        cursor.execute(sql_access)
-=======
         cursor.execute(sql_access, (username, ))
->>>>>>> 59c8ef192f1f76f17a373e8ad47415a4bc99a5cf
         if cursor.rowcount != 1:
             cursor.close()
             g.DB_CONNECTION.rollback()
