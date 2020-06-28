@@ -103,14 +103,15 @@ def token():
     inet = request.remote_addr
     username = request.json['username']
     # If valid_until format is not valid a bad request is thrown
-    try:
-        valid_until = dateutil.parser.parse(request.json['valid_until'])
-    except:
-        return jsonify({'status_code': 400, 'message': 'invalid valid_until date format'}), 400
-    # If valid_until is not grater than today a bad request is thrown
-    if datetime.datetime.utcnow() > valid_until:
-        return jsonify({'status_code': 400, 'message': 'invalid valid_until date value'}), 400
-    password = get_random_string(64)
+    if request.method != 'DELETE':
+        try:
+            valid_until = dateutil.parser.parse(request.json['valid_until'])
+        except:
+            return jsonify({'status_code': 400, 'message': 'invalid valid_until date format'}), 400
+        # If valid_until is not grater than today a bad request is thrown
+        if datetime.datetime.utcnow() > valid_until:
+            return jsonify({'status_code': 400, 'message': 'invalid valid_until date value'}), 400
+        password = get_random_string(64)
     # Build queries
     sql_access = "INSERT INTO access (token_id, ip, url, method) VALUES ({0:}, '{1:}', '/token', '{2:}')".format(user['id'], inet, request.method)
     if request.method == 'POST':
