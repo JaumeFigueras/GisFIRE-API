@@ -113,7 +113,7 @@ def token():
     password = get_random_string(64)
     # Build queries
     sql_access = "INSERT INTO access (token_id, ip, url, method) VALUES ({0:}, '{1:}', '/token', '{2:}')".format(user['id'], inet, request.method)
-    if request.method == 'POST:'
+    if request.method == 'POST':
         sql_tokens = "INSERT INTO tokens (username, token, admin, valid_until) VALUES (%s, '{0}', FALSE, '{1}')".format(password, valid_until.strftime("%Y-%m-%dT%H:%M:%SZ"))
     elif request.method == 'PUT':
         sql_tokens = "UPDATE tokens SET token = '{0}', valid_until = '{1}' WHERE username = %s".format(password, valid_until.strftime("%Y-%m-%dT%H:%M:%SZ"))
