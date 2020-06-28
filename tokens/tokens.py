@@ -88,12 +88,17 @@ def hello_world():
     except:
         return jsonify({'status_code': 500}), 500
 
-@app.route('/token', methods=['POST'])
+@app.route('/token', methods=['POST', 'PUT', 'DELETE'])
 @auth.login_required(role='admin')
 def token():
     # If there aren't all the required paramaters a bad request is thrown
-    if 'username' not in request.json or 'valid_until' not in request.json:
-        return jsonify({'status_code': 400, 'message': 'username and valid_until parameters are expected'}), 400
+    if request.method != 'DELETE':
+        if 'username' not in request.json or 'valid_until' not in request.json:
+            return jsonify({'status_code': 400, 'message': 'username and valid_until parameters are expected'}), 400
+    else:
+        if 'username' not in request.json:
+            return jsonify({'status_code': 400, 'message': 'username parameter is expected'}), 400
+    # Get data
     user = auth.current_user()
     inet = request.remote_addr
     username = request.json['username']
@@ -108,19 +113,25 @@ def token():
     password = get_random_string(64)
     # Build queries
     sql_access = "INSERT INTO access (token_id, ip, url) VALUES ({0:}, '{1:}', '/token')".format(user['id'], inet)
-    sql_tokens = "INSERT INTO tokens (username, token, admin, valid_until) VALUES (%s, '{0}', FALSE, '{1}')".format(password, valid_until.strftime("%Y-%m-%dT%H:%M:%SZ"))
+    if request.method == 'POST:'
+        sql_tokens = "INSERT INTO tokens (username, token, admin, valid_until) VALUES (%s, '{0}', FALSE, '{1}')".format(password, valid_until.strftime("%Y-%m-%dT%H:%M:%SZ"))
+    elif request.method == 'PUT':
+        sql_tokens = "UPDATE tokens SET token = '{0}', valid_until = '{1}' WHERE username = %s".format(password, valid_until.strftime("%Y-%m-%dT%H:%M:%SZ"))
+    else:
+        sql_tokens = "DELETE FROM tokens WHERE username = %s"
+    # Execute commands
     try:
         cursor = g.DB_CONNECTION.cursor()
         cursor.execute(sql_tokens, (username, ))
         if cursor.rowcount != 1:
             cursor.close()
             g.DB_CONNECTION.rollback()
-            return jsonify({'status_code': 500, 'message': 'failed creating new user token'}), 500
+            return jsonify({'status_code': 500, 'message': 'failed token action'}), 500
         cursor.execute(sql_access, (username, ))
         if cursor.rowcount != 1:
             cursor.close()
             g.DB_CONNECTION.rollback()
-            return jsonify({'status_code': 500, 'message': 'failed creating log information'}), 500
+            return jsonify({'status_code': 500, 'message': 'failed log action'}), 500
         g.DB_CONNECTION.commit()
         cursor.close()
         return jsonify({'username': username, 'token': password})
