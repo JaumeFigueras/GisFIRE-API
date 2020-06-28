@@ -23,6 +23,7 @@ CREATE TABLE public.access
    token_id bigint,
    ip inet,
    url varchar(200),
+   method varchar(10),
    ts timestamp with time zone DEFAULT (now() at time zone 'utc'),
    CONSTRAINT pk_access PRIMARY KEY (id),
    CONSTRAINT fk_access_tokens FOREIGN KEY (token_id) REFERENCES public.tokens (id)

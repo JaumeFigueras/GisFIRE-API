@@ -74,7 +74,7 @@ def get_user_roles(user):
 def hello_world():
     user = auth.current_user()
     inet = request.remote_addr
-    sql = "INSERT INTO access (token_id, ip, url) VALUES ({0:}, '{1:}', '/')".format(user['id'] if user is not None else 'NULL', inet)
+    sql = "INSERT INTO access (token_id, ip, url, method) VALUES ({0:}, '{1:}', '/', 'GET')".format(user['id'] if user is not None else 'NULL', inet)
     try:
         cursor = g.DB_CONNECTION.cursor()
         cursor.execute(sql)
@@ -112,7 +112,7 @@ def token():
         return jsonify({'status_code': 400, 'message': 'invalid valid_until date value'}), 400
     password = get_random_string(64)
     # Build queries
-    sql_access = "INSERT INTO access (token_id, ip, url) VALUES ({0:}, '{1:}', '/token')".format(user['id'], inet)
+    sql_access = "INSERT INTO access (token_id, ip, url, method) VALUES ({0:}, '{1:}', '/token', '{2:}')".format(user['id'], inet, request.method)
     if request.method == 'POST:'
         sql_tokens = "INSERT INTO tokens (username, token, admin, valid_until) VALUES (%s, '{0}', FALSE, '{1}')".format(password, valid_until.strftime("%Y-%m-%dT%H:%M:%SZ"))
     elif request.method == 'PUT':
