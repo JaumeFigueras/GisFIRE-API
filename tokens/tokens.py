@@ -135,7 +135,10 @@ def token():
             return jsonify({'status_code': 500, 'message': 'failed log action'}), 500
         g.DB_CONNECTION.commit()
         cursor.close()
-        return jsonify({'username': username, 'token': password})
+        if request.method != 'DELETE':
+            return jsonify({'username': username, 'token': password})
+        else:
+            return jsonify({'username': username})
     except:
         return jsonify({'status_code': 500, 'message': 'sql exception'}), 500
 
