@@ -18,7 +18,7 @@ auth = HTTPBasicAuth()
 def get_random_string(length):
     token = ""
     for i in range(length):
-        token += CHARACTERS[random.randint(0, length-1)]
+        token += CHARACTERS[random.randint(0, CHARACTER.length() - 1)]
     return token
 
 @app.before_request
