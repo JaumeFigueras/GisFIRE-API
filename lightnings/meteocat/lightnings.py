@@ -88,7 +88,7 @@ def hello_world():
 
 @app.route('/<year>/<month>/<day>/<hour>', methods=['GET'])
 @auth.login_required()
-def token():
+def retrieve_lightnings():
     # If there aren't all the required paramaters a bad request is thrown
     if request.method != 'DELETE':
         if 'username' not in request.json or 'valid_until' not in request.json:
