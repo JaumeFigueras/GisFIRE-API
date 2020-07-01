@@ -158,8 +158,7 @@ def retrieve_lightnings(year, month, day, hour):
         return jsonify({'status_code': 500, 'message': 'failed log action'}), 500
     # Now check if this request is neo or not
     sql_lightnings = "SELECT result_code, number_of_lightnings FROM xdde_requests \
-                        WHERE year = {0:} AND month = {1:} AND day = {2:} AND hour = {3:}"
-                        .format(year, month, day, hour)
+                        WHERE year = {0:} AND month = {1:} AND day = {2:} AND hour = {3:}".format(year, month, day, hour)
     try:
         cursor = g.DB_CONNECTION.cursor()
         cursor.execute(sql_lightnings)
@@ -190,7 +189,7 @@ def retrieve_lightnings(year, month, day, hour):
         try:
             cursor = g.DB_CONNECTION.cursor()
             cursor.execute(sql_lightnings)
-            if cursor.rowcount =! 1:
+            if cursor.rowcount != 1:
                 g.DB_CONNECTION.rollback()
                 cursor.close()
                 return jsonify({'status_code': 500, 'message': 'database error on xdde_requests'}), 500
@@ -204,13 +203,12 @@ def retrieve_lightnings(year, month, day, hour):
         sql_lightnings = list()
         for ln in lightnings:
             sql_lightnings.append("INSERT INTO lightnings (_id, _data, _correntPic, _chi2, _ellipse_eixMajor, _ellipse_eixMenor, _ellipse_angle, _numSensors, _nuvolTerra, _idMunicipi, _coordenades_latitud, _coordenades_longitud) \
-                                    VALUES ({0:}, {1:}, {2:}, {3:}, {4:}, {5:}, {6:}, {7:}, {8:}, {9:}, {10:}, )").format(
-                                    ln['id'], ln['data'], ln['correntPic'], ln['chi2'], ln['ellipse']['eixMajor'], ln['ellipse']['eixMenor'], ln['ellipse']['angle'], ln['numSensors'], ln['nuvolTerra'], ln['idMunicipi'] if 'idMunicipi' in ln else 'NULL', ln['coordenades']['longitud'], ln['coordenades']['latitud'])
-                                    )
+                                    VALUES ({0:}, {1:}, {2:}, {3:}, {4:}, {5:}, {6:}, {7:}, {8:}, {9:}, {10:}, )".format(
+                                    ln['id'], ln['data'], ln['correntPic'], ln['chi2'], ln['ellipse']['eixMajor'], ln['ellipse']['eixMenor'], ln['ellipse']['angle'], ln['numSensors'], ln['nuvolTerra'], ln['idMunicipi'] if 'idMunicipi' in ln else 'NULL', ln['coordenades']['longitud'], ln['coordenades']['latitud']))
         try:
             cursor = g.DB_CONNECTION.cursor()
             cursor.execute(sql_lightnings)
-            if cursor.rowcount =! len(sql_lightnings):
+            if cursor.rowcount != len(sql_lightnings):
                 g.DB_CONNECTION.rollback()
                 cursor.close()
                 return jsonify({'status_code': 500, 'message': 'database error on lightnings'}), 500
