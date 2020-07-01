@@ -5,8 +5,8 @@ CREATE TABLE public.xdde_requests
    day integer,
    hour integer,
    result_code integer NOT NULL DEFAULT 200,
-   number_of_lightnings integer NOT NULL DEFAULT 0,
-   ts timestamp with time zone DEFAULT (now() at time zone 'utc'),
+   number_of_lightnings integer DEFAULT NULL,
+   ts timestamp with time zone DEFAULT (now() at time zone 'utc') ON UPDATE (now() at time zone 'utc'),
    CONSTRAINT pk_xdde_requests PRIMARY KEY (year, month, day, hour)
 )
 WITH (
@@ -29,7 +29,7 @@ CREATE TABLE public.lightnings
   _ellipse_angle double precision NOT NULL,
   _numSensors integer NOT NULL,
   _nuvolTerra boolean NOT NULL,
-  _idMunicipi integer NOT NULL,
+  _idMunicipi integer,
   _coordenades_latitud double precision NOT NULL,
   _coordenades_longitud double precision NOT NULL,
   ts timestamp with time zone DEFAULT (now() at time zone 'utc'),
