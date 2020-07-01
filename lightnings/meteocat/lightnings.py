@@ -244,7 +244,6 @@ def retrieve_lightnings(year, month, day, hour):
     # Return data
     return jsonify(lighnings)
 
-
 if __name__ == "__main__":
     app.run()
 
