@@ -1,14 +1,13 @@
 import pytest
+import testing.postgresql
 
-import lightnings
+from lightnings.meteocat import lightnings
 
 @pytest.fixture
 def client():
-    lighnings.app.config['TESTING'] = True
+    lightnings.app.config['TESTING'] = True
 
-    with lighnings.app.test_client() as client:
-        with lighnings.app.app_context():
-            pass
+    with lightnings.app.test_client() as client:
         yield client
 
 def test_empty_db(client):
