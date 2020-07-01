@@ -62,5 +62,14 @@ add config to site configuration
     AllowOverride None
     Require all granted
   </Directory>
+```
 
+
+## Testing
+
+### 1. install
+
+```bash
+$ sudo apt-get install python3-pytest
+$ exit
 ```
