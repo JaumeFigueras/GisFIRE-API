@@ -6,7 +6,7 @@ CREATE TABLE public.xdde_requests
    hour integer,
    result_code integer NOT NULL DEFAULT 200,
    number_of_lightnings integer DEFAULT NULL,
-   ts timestamp with time zone DEFAULT (now() at time zone 'utc') ON UPDATE (now() at time zone 'utc'),
+   ts timestamp with time zone DEFAULT (now() at time zone 'utc'),
    CONSTRAINT pk_xdde_requests PRIMARY KEY (year, month, day, hour)
 )
 WITH (
@@ -16,7 +16,6 @@ WITH (
 ALTER TABLE public.xdde_requests
   OWNER TO gisfireuser
 ;
-
 
 CREATE TABLE public.lightnings
 (

@@ -6,14 +6,24 @@ from flask import jsonify
 
 import random
 import psycopg2
-import configparser
+from configparser import ConfigParser
 import datetime
 import dateutil.parser
 import concurrent.futures
 import requests
+import pytz
 
 app = Flask(__name__)
 auth = HTTPBasicAuth()
+
+app.config.update(
+    TESTING=False,
+    SECRET_KEY=b'123456789poiuytrewq',
+    CONFIG_FILE='/home/gisfire/gisfire.cfg',
+    CONFIG_OPTIONS=ConfigParser(),
+)
+app.config['CONFIG_OPTIONS'].read(app.config['CONFIG_FILE'])
+
 
 def download_thread(year, month, day, hour, api_key):
     """Download function of the meteo.cat dataof the selected date and hour. It
@@ -42,23 +52,23 @@ def download_thread(year, month, day, hour, api_key):
 
 @app.before_request
 def config_setup():
-    g.CONFIG = configparser.ConfigParser()
-    g.CONFIG.read('/home/gisfire/gisfire.cfg')
-    g.DB_CONNECTION = psycopg2.connect(host=g.CONFIG['lightnings']['host'],
-                                        port=g.CONFIG['lightnings']['port'],
-                                        database=g.CONFIG['lightnings']['database'],
-                                        user=g.CONFIG['lightnings']['user'],
-                                        password=g.CONFIG['lightnings']['password'])
-    g.DB_GISFIRE = psycopg2.connect(host=g.CONFIG['database']['host'],
-                                    port=g.CONFIG['database']['port'],
-                                    database=g.CONFIG['database']['database'],
-                                    user=g.CONFIG['database']['user'],
-                                    password=g.CONFIG['database']['password'])
+    opt = app.config['CONFIG_OPTIONS']['database']
+    g.DB_LOG = psycopg2.connect(host=opt['host'],
+                                port=opt['port'],
+                                database=opt['database'],
+                                user=opt['user'],
+                                password=opt['password'])
+    opt = app.config['CONFIG_OPTIONS']['lightnings']
+    g.DB_LIGHTNINGS = psycopg2.connect(host=opt['host'],
+                                        port=opt['port'],
+                                        database=opt['database'],
+                                        user=opt['user'],
+                                        password=opt['password'])
 
 @app.teardown_appcontext
 def close_db(error):
-    g.DB_CONNECTION.close()
-    g.DB_GISFIRE.close()
+    g.DB_LOG.close()
+    g.DB_LIGHTNINGS.close()
 
 @app.errorhandler(401)
 def unauthorized(error):
@@ -77,7 +87,7 @@ def verify_password(username, password):
     if username is None or username == '':
         return None
     sql ="SELECT token, admin, id, valid_until FROM tokens WHERE username = %s"
-    cursor = g.DB_GISFIRE.cursor()
+    cursor = g.DB_LOG.cursor()
     cursor.execute(sql, (username, ))
     row = cursor.fetchone()
     if row is not None:
@@ -85,32 +95,26 @@ def verify_password(username, password):
             user = {'username': username, 'password': password, 'admin': row[1], 'id': row[2], 'valid_until': row[3]}
         else:
             user = None
+    else:
+        user = None
     cursor.close()
     return user
 
-@auth.get_user_roles
-def get_user_roles(user):
-    if user['admin'] == True:
-        return ['admin']
-    return ['user']
-
 @app.route('/', methods=['GET'])
 @auth.login_required(optional=True)
-def hello_world():
+def bonjour_service():
     user = auth.current_user()
     inet = request.remote_addr
     sql = "INSERT INTO access (token_id, ip, url, method) VALUES ({0:}, '{1:}', '/lightnings/meteocat/v1/', 'GET')".format(user['id'] if user is not None else 'NULL', inet)
     try:
-        cursor = g.DB_GISFIRE.cursor()
+        cursor = g.DB_LOG.cursor()
         cursor.execute(sql)
-        if cursor.rowcount != 1:
-            cursor.close()
-            g.DB_GISFIRE.rollback()
-            return jsonify({'status_code': 500}), 500
-        g.DB_GISFIRE.commit()
+        g.DB_LOG.commit()
         cursor.close()
         return jsonify({})
     except:
+        cursor.close()
+        g.DB_LOG.rollback()
         return jsonify({'status_code': 500}), 500
 
 @app.route('/<year>/<month>/<day>/<hour>', methods=['GET'])
@@ -118,6 +122,8 @@ def hello_world():
 def retrieve_lightnings(year, month, day, hour):
     # Get basic data
     user = auth.current_user()
+    if user['valid_until'] < pytz.UTC.localize(datetime.datetime.utcnow()):
+        return jsonify({'status_code': 401, 'message': 'user expired'}), 401
     inet = request.remote_addr
     # Try to convert all parameters to integers
     try:
@@ -146,16 +152,13 @@ def retrieve_lightnings(year, month, day, hour):
     # The date is valid, let's log the access
     sql_access = "INSERT INTO access (token_id, ip, url, method) VALUES ({0:}, '{1:}', '/lightnings/meteocat/v1/{3:}/{4:}/{5:}/{6:}', '{2:}')".format(user['id'], inet, request.method, year, month, day, hour)
     try:
-        cursor = g.DB_GISFIRE.cursor()
+        cursor = g.DB_LOG.cursor()
         cursor.execute(sql_access)
-        if cursor.rowcount != 1:
-            cursor.close()
-            g.DB_GISFIRE.rollback()
-            return jsonify({'status_code': 500, 'message': 'failed log action'}), 500
-        g.DB_GISFIRE.commit()
+        g.DB_LOG.commit()
         cursor.close()
     except:
         return jsonify({'status_code': 500, 'message': 'failed log action'}), 500
+    return jsonify({})
     # Now check if this request is neo or not
     sql_lightnings = "SELECT result_code, number_of_lightnings FROM xdde_requests \
                         WHERE year = {0:} AND month = {1:} AND day = {2:} AND hour = {3:}".format(year, month, day, hour)
