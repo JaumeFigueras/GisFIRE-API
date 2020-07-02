@@ -27,3 +27,5 @@ $ sudo pip3 install Flask-HTTPAuth
 $ sudo pip3 install configparser
 $ exit
 ```
+poccible conflic on ubuntu 20.04 and HTTPAuth, better install pip3 newer version
+on 18.04 there is no problem

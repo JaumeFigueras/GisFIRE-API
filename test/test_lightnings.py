@@ -4,6 +4,7 @@ from configparser import ConfigParser
 from pathlib import Path
 import psycopg2
 import base64
+import responses
 
 from lightnings.meteocat import lightnings
 
@@ -52,10 +53,11 @@ def client():
     add_postgis(conn)
     process_sql_file(str(test_folder.parent) + '/tokens/tokens.sql', conn)
     process_sql_file(str(test_folder.parent) + '/lightnings/meteocat/lightnings.sql', conn)
-    process_sql_file(str(test_folder) + '/database_init.sql', conn)
+    conn.close()
     opt = lightnings.app.config['CONFIG_OPTIONS']['database']
     conn = psycopg2.connect(host=opt['host'], port=opt['port'], database=opt['database'], user=opt['user'], password=opt['password'])
     lightnings.app.config['TEST_CONNECTION'] = conn
+    process_sql_file(str(test_folder) + '/database_init.sql', conn)
 
     with lightnings.app.test_client() as client:
         yield client
@@ -69,6 +71,14 @@ def test_database(client):
     cursor = conn.cursor()
     cursor.execute(sql)
     assert cursor.rowcount == 4
+    sql = "SELECT * FROM xdde_requests"
+    cursor = conn.cursor()
+    cursor.execute(sql)
+    assert cursor.rowcount == 3
+    sql = "SELECT * FROM lightnings"
+    cursor = conn.cursor()
+    cursor.execute(sql)
+    assert cursor.rowcount == 3
 
 def test_root_route(client):
     """ Test root route, empty json should be returned and one log entry added
@@ -325,12 +335,30 @@ def test_lightning_route_wrong_log(client):
     cursor.execute(sql)
     conn.commit()
 
-def test_lightning_route_correct_log(client):
+def test_lightning_route_existing_with_0_lightnings(client):
     """ Test lightning route, unauthorized error should be returned """
     # Correct Auth
     username = 'user'
     password = 'user'
-    rv = client.get('/2020/06/01/10', headers={'Authorization': 'Basic ' + base64.b64encode(bytes(username + ":" + password, 'ascii')).decode('ascii')})
+    rv = client.get('/2020/06/01/17', headers={'Authorization': 'Basic ' + base64.b64encode(bytes(username + ":" + password, 'ascii')).decode('ascii')})
+    assert len(rv.get_json()) == 0
+    conn = lightnings.app.config['TEST_CONNECTION']
+    sql = "SELECT * FROM access"
+    cursor = conn.cursor()
+    cursor.execute(sql)
+    assert cursor.rowcount == 1
+    sql = "DELETE FROM access"
+    cursor = conn.cursor()
+    cursor.execute(sql)
+    conn.commit()
+
+def test_lightning_route_existing_with_3_lightnings(client):
+    """ Test lightning route, unauthorized error should be returned """
+    # Correct Auth
+    username = 'user'
+    password = 'user'
+    rv = client.get('/2020/06/01/18', headers={'Authorization': 'Basic ' + base64.b64encode(bytes(username + ":" + password, 'ascii')).decode('ascii')})
+    assert len(rv.get_json()) == 3
     conn = lightnings.app.config['TEST_CONNECTION']
     sql = "SELECT * FROM access"
     cursor = conn.cursor()

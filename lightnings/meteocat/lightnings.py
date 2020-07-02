@@ -13,9 +13,11 @@ import concurrent.futures
 import requests
 import pytz
 
+# Create the Flask application and authentication component
 app = Flask(__name__)
 auth = HTTPBasicAuth()
 
+# Set configuration and read config file
 app.config.update(
     TESTING=False,
     SECRET_KEY=b'123456789poiuytrewq',
@@ -49,9 +51,11 @@ def download_thread(year, month, day, hour, api_key):
     r = requests.get(url, headers=headers)
     return (r.status_code, r.json())
 
-
 @app.before_request
 def config_setup():
+    """ Sets up the connection objects from the configurations, it uses the g
+    global object because is a runtime element, not a configuration
+    """
     opt = app.config['CONFIG_OPTIONS']['database']
     g.DB_LOG = psycopg2.connect(host=opt['host'],
                                 port=opt['port'],
@@ -67,6 +71,8 @@ def config_setup():
 
 @app.teardown_appcontext
 def close_db(error):
+    """ Shuts down the existing connections before exiting the program
+    """
     g.DB_LOG.close()
     g.DB_LIGHTNINGS.close()
 
@@ -158,24 +164,53 @@ def retrieve_lightnings(year, month, day, hour):
         cursor.close()
     except:
         return jsonify({'status_code': 500, 'message': 'failed log action'}), 500
-    return jsonify({})
-    # Now check if this request is neo or not
+    # Now check if this request is new or not
     sql_lightnings = "SELECT result_code, number_of_lightnings FROM xdde_requests \
                         WHERE year = {0:} AND month = {1:} AND day = {2:} AND hour = {3:}".format(year, month, day, hour)
     try:
-        cursor = g.DB_CONNECTION.cursor()
+        cursor = g.DB_LIGHTNINGS.cursor()
         cursor.execute(sql_lightnings)
-        if cursor.rowcount > 1:
-            return jsonify({'status_code': 500, 'message': 'database inconsistency on xdde_requests'}), 500
-        elif cursor.rowcount == 1:
+        if cursor.rowcount == 1:
             rows = cursor.fetchall()
             new_request = False
             old_request_status_code = rows[0][0]
+            number_of_lightnings = rows[0][1]
         else:
             new_request = True
         cursor.close()
     except:
         return jsonify({'status_code': 500, 'message': 'failed request check'}), 500
+    # If found and zero lightnins
+    if not new_request and old_request_status_code == 200:
+        if number_of_lightnings == 0:
+            return jsonify([])
+        else:
+            # Read the database and prepare json
+            sql_lightnings = "SELECT _id, _data, _correntPic, _chi2, _ellipse_eixMajor, _ellipse_eixMenor, _ellipse_angle, _numSensors, _nuvolTerra, _idMunicipi, _coordenades_latitud, _coordenades_longitud FROM lightnings WHERE _data >= '{0:04d}-{1:02d}-{2:02d}T{3:02d}:00:00Z' AND _data <= '{0:04d}-{1:02d}-{2:02d}T{3:02d}:59:59Z'".format(year, month, day, hour)
+            print(sql_lightnings)
+            cursor = g.DB_LIGHTNINGS.cursor()
+            cursor.execute(sql_lightnings)
+            rows = cursor.fetchall()
+            lightnings = list()
+            for row in rows:
+                ln = dict()
+                ln['id'] = row[0]
+                ln['data'] = row[1]
+                ln['correntPic'] = row[2]
+                ln['chi2'] = row[3]
+                ln['ellipse'] = dict()
+                ln['ellipse']['eixMajor'] = row[4]
+                ln['ellipse']['eixMenor'] = row[5]
+                ln['ellipse']['angle'] = row[6]
+                ln['numSnesors'] = row[7]
+                ln['nuvolTerra'] = row[8]
+                ln['idMunicipi'] = row[9]
+                ln['coordenades'] = dict()
+                ln['coordenades']['longitud'] = row[10]
+                ln['coordenades']['latitud'] = row[11]
+                lightnings.append(ln)
+            # Return data
+            return jsonify(lightnings)
     # Launch request to MeteoCat
     if new_request or (not new_request and old_request_status_code != 200):
         meteocat_api_key = request.headers.get('x-api-key')
@@ -190,13 +225,9 @@ def retrieve_lightnings(year, month, day, hour):
             sql_lightnings = "INSERT INTO xdde_requests (year, month, day, hour, result_code)\
                                 VALUES ({0:}, {1:}, {2:}, {3:}, {4:})".format(year, month, day, hour, return_code)
         try:
-            cursor = g.DB_CONNECTION.cursor()
+            cursor = g.DB_LIGHTNINGS.cursor()
             cursor.execute(sql_lightnings)
-            if cursor.rowcount != 1:
-                g.DB_CONNECTION.rollback()
-                cursor.close()
-                return jsonify({'status_code': 500, 'message': 'database error on xdde_requests'}), 500
-            g.DB_CONNECTION.commit()
+            g.DB_LIGHTNINGS.commit()
             cursor.close()
             if return_code != 200:
                 return jsonify({'status_code': 502, 'message': 'error while accessing remote server'}), 502
@@ -211,39 +242,10 @@ def retrieve_lightnings(year, month, day, hour):
         try:
             cursor = g.DB_CONNECTION.cursor()
             cursor.execute(sql_lightnings)
-            if cursor.rowcount != len(sql_lightnings):
-                g.DB_CONNECTION.rollback()
-                cursor.close()
-                return jsonify({'status_code': 500, 'message': 'database error on lightnings'}), 500
             g.DB_CONNECTION.commit()
             cursor.close()
         except:
             return jsonify({'status_code': 500, 'message': 'database error on lightnings'}), 500
-    # Read the database and prepare json
-    sql_lightnings = "SELECT _id, _data, _correntPic, _chi2, _ellipse_eixMajor, _ellipse_eixMenor, _ellipse_angle, _numSensors, _nuvolTerra, _idMunicipi, _coordenades_latitud, _coordenades_longitud FROM lightnings WHERE _data >= '{0:}:{1:}:{2:} {3:}-00-00'::timestamp AND _data <= '{0:}:{1:}:{2:} {3:}-59-59'::timestamp"
-    cursor = g.DB_CONNECTION.cursor()
-    cursor.execute(sql_lightnings)
-    rows = cursor.fetchall()
-    lightnings = list()
-    for row in rows:
-        ln = dict()
-        ln['id'] = row[0]
-        ln['data'] = row[1]
-        ln['correntPic'] = row[2]
-        ln['chi2'] = row[3]
-        ln['ellipse'] = dict()
-        ln['ellipse']['eixMajor'] = row[4]
-        ln['ellipse']['eixMenor'] = row[5]
-        ln['ellipse']['angle'] = row[6]
-        ln['numSnesors'] = row[7]
-        ln['nuvolTerra'] = row[8]
-        ln['idMunicipi'] = row[9]
-        ln['coordenades'] = dict()
-        ln['coordenades']['longitud'] = row[10]
-        ln['coordenades']['latitud'] = row[11]
-        lightnings.append(ln)
-    # Return data
-    return jsonify(lighnings)
 
 if __name__ == "__main__":
     app.run()
