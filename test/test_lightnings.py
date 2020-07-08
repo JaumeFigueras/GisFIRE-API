@@ -245,7 +245,7 @@ def test_lightning_route_expired_user_correct_password(client):
     assert rv.get_json()['message'] == 'user expired'
 
 def test_lightning_route_wrong_year(client):
-    """ Test lightning route, unauthorized error should be returned """
+    """ Test wrong year in URL, an string is passed as year """
     # Wrong username
     username = 'user'
     password = 'user'
@@ -260,7 +260,7 @@ def test_lightning_route_wrong_year(client):
     assert rv.get_json()['message'] == 'invalid year'
 
 def test_lightning_route_wrong_month(client):
-    """ Test lightning route, unauthorized error should be returned """
+    """ Test wrong month in URL, an string is passed as month """
     # Wrong username
     username = 'user'
     password = 'user'
@@ -275,7 +275,7 @@ def test_lightning_route_wrong_month(client):
     assert rv.get_json()['message'] == 'invalid month'
 
 def test_lightning_route_wrong_day(client):
-    """ Test lightning route, unauthorized error should be returned """
+    """ Test wrong day in URL, an string is passed as day """
     # Wrong username
     username = 'user'
     password = 'user'
@@ -290,7 +290,7 @@ def test_lightning_route_wrong_day(client):
     assert rv.get_json()['message'] == 'invalid day'
 
 def test_lightning_route_wrong_hour(client):
-    """ Test lightning route, unauthorized error should be returned """
+    """Test wrong hour in URL, an string is passed as hour  """
     # Wrong username
     username = 'user'
     password = 'user'
@@ -305,7 +305,7 @@ def test_lightning_route_wrong_hour(client):
     assert rv.get_json()['message'] == 'invalid hour'
 
 def test_lightning_route_wrong_date(client):
-    """ Test lightning route, unauthorized error should be returned """
+    """ Test a correctly formed date, but non existent in a real calendar """
     # Wrong username
     username = 'user'
     password = 'user'
@@ -317,7 +317,7 @@ def test_lightning_route_wrong_date(client):
     assert rv.get_json()['message'] == 'invalid date'
 
 def test_lightning_route_wrong_log(client):
-    """ Test lightning route, unauthorized error should be returned """
+    """ Test exception during write in the log table, it is tested revokingq user privileges """
     conn = lightnings.app.config['TEST_CONNECTION']
     sql = "REVOKE INSERT, UPDATE, DELETE ON access FROM gisfireuser;"
     cursor = conn.cursor()
@@ -336,7 +336,7 @@ def test_lightning_route_wrong_log(client):
     conn.commit()
 
 def test_lightning_route_existing_with_0_lightnings(client):
-    """ Test lightning route, unauthorized error should be returned """
+    """ Test a previously cached query with success but with 0 lightnings """
     # Correct Auth
     username = 'user'
     password = 'user'
@@ -353,7 +353,7 @@ def test_lightning_route_existing_with_0_lightnings(client):
     conn.commit()
 
 def test_lightning_route_existing_with_3_lightnings(client):
-    """ Test lightning route, unauthorized error should be returned """
+    """ Test a previously cached query with success with some lightnings in the database """
     # Correct Auth
     username = 'user'
     password = 'user'
