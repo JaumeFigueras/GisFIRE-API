@@ -372,20 +372,24 @@ def test_lightning_route_existing_with_3_lightnings(client):
 
 def test_lightning_route_existing_error_with_0_lightnings(client):
     """ Test a previously cached query with error with no lightnings in remote """
-    # TODO
+    # TODO: add response
     # Correct Auth
     username = 'user'
     password = 'user'
-    rv = client.get('/2020/06/01/18', headers={'Authorization': 'Basic ' + base64.b64encode(bytes(username + ":" + password, 'ascii')).decode('ascii')})
-    assert len(rv.get_json()) == 3
+    rv = client.get('/2020/06/01/19', headers={'Authorization': 'Basic ' + base64.b64encode(bytes(username + ":" + password, 'ascii')).decode('ascii')})
+    assert len(rv.get_json()) == 0
     conn = lightnings.app.config['TEST_CONNECTION']
-    sql = "SELECT * FROM access"
+    sql = "SELECT * FROM xdde_requests WHERE result_code = 200"
     cursor = conn.cursor()
     cursor.execute(sql)
-    assert cursor.rowcount == 1
-    sql = "DELETE FROM access"
+    assert cursor.rowcount == 3
+    sql = "SELECT * FROM lightnings"
     cursor = conn.cursor()
     cursor.execute(sql)
+    assert cursor.rowcount = 3
+    sql = "UPDATE xdde_requests SET response_code = 500 WHERE year = 2020 AND month = 6 AND day = 1 AND hour = 19"
+    cursor = conn.cursor()
+    cursor.execute()
     conn.commit()
     
 def test_lightning_route_existing_with_error_3_lightnings(client):
