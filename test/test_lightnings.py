@@ -403,7 +403,6 @@ def test_lightning_route_existing_error_with_0_lightnings(client):
     cursor.execute(sql)
     conn.commit()
 
-
 @responses.activate
 def test_lightning_route_existing_with_error_3_lightnings(client):
     """ Test a previously cached query with error with some lightnings in remote """
@@ -484,7 +483,7 @@ def test_lightning_route_existing_with_error_3_lightnings(client):
 
 @responses.activate
 def test_lightning_route_new_server_error(client):
-    """ Test a previously cached query with error with no lightnings in remote """
+    """ Test a remote server error """
     # Add mock response
     responses.add(responses.GET, 'https://api.meteo.cat/xdde/v1/catalunya/2020/06/01/20', body='{}', status=404, content_type='application/json')
     # Correct Auth
@@ -516,16 +515,31 @@ def test_lightning_route_new_server_error(client):
     cursor.execute(sql)
     conn.commit()
 
-
-"""def test_lightning_route_new_with_0_lightnings(client):
-    Test a new query with success with zero lightnings in the remote
-    # TODO
+@responses.activate
+def test_lightning_route_new_with_0_lightnings(client):
+    """ Test a non cached query but with no lightnings """
+    # Add mock response
+    responses.add(responses.GET, 'https://api.meteo.cat/xdde/v1/catalunya/2020/06/01/20', body='[]', status=200, content_type='application/json')
     # Correct Auth
     username = 'user'
     password = 'user'
-    rv = client.get('/2020/06/01/18', headers={'Authorization': 'Basic ' + base64.b64encode(bytes(username + ":" + password, 'ascii')).decode('ascii')})
-    assert len(rv.get_json()) == 3
+    rv = client.get('/2020/06/01/20', headers={'Authorization': 'Basic ' + base64.b64encode(bytes(username + ":" + password, 'ascii')).decode('ascii')})
+    assert len(responses.calls) == 1
+    print(rv.get_json())
+    assert len(rv.get_json()) == 0
     conn = lightnings.app.config['TEST_CONNECTION']
+    sql = "SELECT * FROM xdde_requests WHERE result_code = 200"
+    cursor = conn.cursor()
+    cursor.execute(sql)
+    assert cursor.rowcount == 3
+    sql = "SELECT * FROM lightnings"
+    cursor = conn.cursor()
+    cursor.execute(sql)
+    assert cursor.rowcount == 3
+    sql = "DELETE FROM xdde_requests WHERE year = 2020 AND month = 6 AND day = 1 AND hour = 20"
+    cursor = conn.cursor()
+    cursor.execute(sql)
+    conn.commit()
     sql = "SELECT * FROM access"
     cursor = conn.cursor()
     cursor.execute(sql)
@@ -535,26 +549,8 @@ def test_lightning_route_new_server_error(client):
     cursor.execute(sql)
     conn.commit()
 
-def test_lightning_route_new_with_3_lightnings(client):
+"""def test_lightning_route_new_with_3_lightnings(client):
     Test a new query with success with some lightnings in remote
-    # TODO
-    # Correct Auth
-    username = 'user'
-    password = 'user'
-    rv = client.get('/2020/06/01/18', headers={'Authorization': 'Basic ' + base64.b64encode(bytes(username + ":" + password, 'ascii')).decode('ascii')})
-    assert len(rv.get_json()) == 3
-    conn = lightnings.app.config['TEST_CONNECTION']
-    sql = "SELECT * FROM access"
-    cursor = conn.cursor()
-    cursor.execute(sql)
-    assert cursor.rowcount == 1
-    sql = "DELETE FROM access"
-    cursor = conn.cursor()
-    cursor.execute(sql)
-    conn.commit()
-
-def test_lightning_route_new_with_error(client):
-    Test a new query with success with remote error
     # TODO
     # Correct Auth
     username = 'user'

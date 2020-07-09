@@ -219,7 +219,7 @@ def retrieve_lightnings(year, month, day, hour):
         if return_code == 200:
             if new_request:
                 sql_lightnings = "INSERT INTO xdde_requests (year, month, day, hour, result_code, number_of_lightnings)\
-                                    VALUES ({0:}, {1:}, {2:}, {3:}, {4:}, {5:}, )".format(year, month, day, hour, return_code, len(lightnings))
+                                    VALUES ({0:}, {1:}, {2:}, {3:}, {4:}, {5:})".format(year, month, day, hour, return_code, len(lightnings))
             else:
                 sql_lightnings = "UPDATE xdde_requests SET result_code = {0:}, number_of_lightnings = {1:}".format(return_code, len(lightnings))
         else:
