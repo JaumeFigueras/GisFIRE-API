@@ -5,6 +5,7 @@ from pathlib import Path
 import psycopg2
 import base64
 import responses
+import json
 
 from lightnings.meteocat import lightnings
 
@@ -393,19 +394,68 @@ def test_lightning_route_existing_error_with_0_lightnings(client):
     cursor = conn.cursor()
     cursor.execute(sql)
     conn.commit()
+    sql = "SELECT * FROM access"
+    cursor = conn.cursor()
+    cursor.execute(sql)
+    assert cursor.rowcount == 1
+    sql = "DELETE FROM access"
+    cursor = conn.cursor()
+    cursor.execute(sql)
+    conn.commit()
+
 
 @responses.activate
 def test_lightning_route_existing_with_error_3_lightnings(client):
     """ Test a previously cached query with error with some lightnings in remote """
     # Add mock response
-    responses.add(responses.GET, 'https://api.meteo.cat/xdde/v1/catalunya/2020/06/01/19', body='''[{"id":18489834,"data":"2020-06-01T19:22:55.739213Z","correntPic":-18.5555,"chi2":0.69999999,"ellipse":{"eixMajor":1700,"eixMenor":400,"angle":76.699997},"numSensors":4,"nuvolTerra":true,"coordenades":{"latitud":40.911514,"longitud":-0.1758875}}]''', status=200, content_type='application/json')
+    json_list = list()
+    json_list.append({
+        "id": 18489834,
+        "data": "2020-06-01T19:22:55.739213Z",
+        "correntPic": -18.5555,
+        "chi2": 0.69999999,
+        "ellipse": {"eixMajor": 1700,
+                    "eixMenor":400,
+                    "angle":76.699997},
+        "numSensors": 4,
+        "nuvolTerra": True,
+        "coordenades": {"latitud": 40.911514,
+                    "longitud":-0.1758875},
+        })
+    json_list.append({
+        "id": 18489835,
+        "data": "2020-06-01T19:22:55.739213Z",
+        "correntPic": -18.5555,
+        "chi2": 0.69999999,
+        "ellipse": {"eixMajor": 1700,
+                    "eixMenor":400,
+                    "angle":76.699997},
+        "numSensors": 4,
+        "nuvolTerra": True,
+        "coordenades": {"latitud": 40.911514,
+                    "longitud":-0.1758875},
+        })
+    json_list.append({
+        "id": 1848983,
+        "data": "2020-06-01T19:22:55.739213Z",
+        "correntPic": -18.5555,
+        "chi2": 0.69999999,
+        "ellipse": {"eixMajor": 1700,
+                    "eixMenor":400,
+                    "angle":76.699997},
+        "numSensors": 4,
+        "nuvolTerra": True,
+        "idMunicipi": 12345,
+        "coordenades": {"latitud": 40.911514,
+                    "longitud":-0.1758875},
+        })
+    responses.add(responses.GET, 'https://api.meteo.cat/xdde/v1/catalunya/2020/06/01/19', body=json.dumps(json_list), status=200, content_type='application/json')
     # Correct Auth
     username = 'user'
     password = 'user'
     rv = client.get('/2020/06/01/19', headers={'Authorization': 'Basic ' + base64.b64encode(bytes(username + ":" + password, 'ascii')).decode('ascii')})
     assert len(responses.calls) == 1
-    print(rv.get_json())
-    assert len(rv.get_json()) == 1
+    assert len(rv.get_json()) == 3
     conn = lightnings.app.config['TEST_CONNECTION']
     sql = "SELECT * FROM xdde_requests WHERE result_code = 200"
     cursor = conn.cursor()
@@ -415,7 +465,11 @@ def test_lightning_route_existing_with_error_3_lightnings(client):
     cursor = conn.cursor()
     cursor.execute(sql)
     assert cursor.rowcount == 6
-    sql = "DELETE FROM lightnings WHERE id = 18489834 OR id = 18489835 OR id = 18489834"
+    sql = "DELETE FROM lightnings WHERE _id = 18489834 OR _id = 18489835 OR _id = 18489834"
+    cursor = conn.cursor()
+    cursor.execute(sql)
+    conn.commit()
+    sql = "UPDATE xdde_requests SET result_code = 500 WHERE year = 2020 AND month = 6 AND day = 1 AND hour = 19"
     cursor = conn.cursor()
     cursor.execute(sql)
     conn.commit()
@@ -427,6 +481,41 @@ def test_lightning_route_existing_with_error_3_lightnings(client):
     cursor = conn.cursor()
     cursor.execute(sql)
     conn.commit()
+
+@responses.activate
+def test_lightning_route_new_server_error(client):
+    """ Test a previously cached query with error with no lightnings in remote """
+    # Add mock response
+    responses.add(responses.GET, 'https://api.meteo.cat/xdde/v1/catalunya/2020/06/01/20', body='{}', status=404, content_type='application/json')
+    # Correct Auth
+    username = 'user'
+    password = 'user'
+    rv = client.get('/2020/06/01/20', headers={'Authorization': 'Basic ' + base64.b64encode(bytes(username + ":" + password, 'ascii')).decode('ascii')})
+    assert len(responses.calls) == 1
+    assert rv.get_json()['status_code'] == 502
+    assert rv.get_json()['message'] == 'error while accessing remote server'
+    conn = lightnings.app.config['TEST_CONNECTION']
+    sql = "SELECT * FROM xdde_requests WHERE result_code = 404"
+    cursor = conn.cursor()
+    cursor.execute(sql)
+    assert cursor.rowcount == 1
+    sql = "SELECT * FROM lightnings"
+    cursor = conn.cursor()
+    cursor.execute(sql)
+    assert cursor.rowcount == 3
+    sql = "DELETE FROM xdde_requests WHERE result_code = 404"
+    cursor = conn.cursor()
+    cursor.execute(sql)
+    conn.commit()
+    sql = "SELECT * FROM access"
+    cursor = conn.cursor()
+    cursor.execute(sql)
+    assert cursor.rowcount == 1
+    sql = "DELETE FROM access"
+    cursor = conn.cursor()
+    cursor.execute(sql)
+    conn.commit()
+
 
 """def test_lightning_route_new_with_0_lightnings(client):
     Test a new query with success with zero lightnings in the remote

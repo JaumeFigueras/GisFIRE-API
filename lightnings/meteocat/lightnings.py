@@ -204,7 +204,7 @@ def retrieve_lightnings(year, month, day, hour):
                 ln['ellipse']['angle'] = row[6]
                 ln['numSnesors'] = row[7]
                 ln['nuvolTerra'] = row[8]
-                if 'idMunicipi' in ln:
+                if row[9] is not None:
                     ln['idMunicipi'] = row[9]
                 ln['coordenades'] = dict()
                 ln['coordenades']['longitud'] = row[10]
@@ -238,10 +238,8 @@ def retrieve_lightnings(year, month, day, hour):
         if len(lightnings) > 0:
             sql_lightnings = list()
             for ln in lightnings:
-                #sql_lightnings.append("INSERT INTO lightnings (_id, _data, _correntPic, _chi2, _ellipse_eixMajor, _ellipse_eixMenor, _ellipse_angle, _numSensors, _nuvolTerra, _idMunicipi, _coordenades_latitud, _coordenades_longitud) VALUES ({0:}, {1:}, {2:}, {3:}, {4:}, {5:}, {6:}, {7:}, {8:}, {9:}, {10:}, {11:})".format( \
-                #                        ln['id'], ln['data'], ln['correntPic'], ln['chi2'], ln['ellipse']['eixMajor'], ln['ellipse']['eixMenor'], ln['ellipse']['angle'], ln['numSensors'], ln['nuvolTerra'], ln['idMunicipi'] if 'idMunicipi' in ln else 'NULL', ln['coordenades']['longitud'], ln['coordenades']['latitud']))
-                sql_lightnings.append("INSERT INTO lightnings (_id, _data, _correntPic, _chi2, _ellipse_eixMajor, _ellipse_eixMenor, _ellipse_angle, _numSensors, _nuvolTerra, _idMunicipi, _coordenades_latitud, _coordenades_longitud, geom) VALUES ({0:}, '{1:}', 4.6620002, 0, 800, 400, 168.5, 2, TRUE, NULL, 42.0525, 1.3990, ST_GeomFromText('POINT(1.3990 42.0525)', 4258));". \
-                                        format(ln['id'], ln['data']))
+                sql_lightnings.append("INSERT INTO lightnings (_id, _data, _correntPic, _chi2, _ellipse_eixMajor, _ellipse_eixMenor, _ellipse_angle, _numSensors, _nuvolTerra, _idMunicipi, _coordenades_longitud, _coordenades_latitud, geom) VALUES ({0:}, '{1:}', {2:}, {3:}, {4:}, {5:}, {6:}, {7:}, {8:}, {9:}, {10:}, {11:}, ST_GeomFromText('POINT({10:} {11:})', 4258));". \
+                                        format(ln['id'], ln['data'], ln['correntPic'], ln['chi2'], ln['ellipse']['eixMajor'], ln['ellipse']['eixMenor'], ln['ellipse']['angle'], ln['numSensors'], ln['nuvolTerra'], ln['idMunicipi'] if 'idMunicipi' in ln else 'NULL', ln['coordenades']['longitud'], ln['coordenades']['latitud']))
             try:
                 cursor = g.DB_LIGHTNINGS.cursor()
                 for sql in sql_lightnings:
