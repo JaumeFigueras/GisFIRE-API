@@ -62,12 +62,14 @@ def config_setup():
                                 database=opt['database'],
                                 user=opt['user'],
                                 password=opt['password'])
+    g.DB_LOG.autocommit = False
     opt = app.config['CONFIG_OPTIONS']['lightnings']
     g.DB_LIGHTNINGS = psycopg2.connect(host=opt['host'],
                                         port=opt['port'],
                                         database=opt['database'],
                                         user=opt['user'],
                                         password=opt['password'])
+    g.DB_LIGHTNINGS.autocommit = False
 
 @app.teardown_appcontext
 def close_db(error):
@@ -75,14 +77,6 @@ def close_db(error):
     """
     g.DB_LOG.close()
     g.DB_LIGHTNINGS.close()
-
-@app.errorhandler(401)
-def unauthorized(error):
-    return jsonify({'status_code': 401}), 401
-
-@app.errorhandler(404)
-def page_not_found(error):
-    return jsonify({'status_code': 404}), 404
 
 @auth.error_handler
 def auth_error(status):
@@ -228,11 +222,12 @@ def retrieve_lightnings(year, month, day, hour):
         try:
             cursor = g.DB_LIGHTNINGS.cursor()
             cursor.execute(sql_lightnings)
-            g.DB_LIGHTNINGS.commit()
             cursor.close()
             if return_code != 200:
+                g.DB_LIGHTNINGS.commit()
                 return jsonify({'status_code': 502, 'message': 'error while accessing remote server'}), 502
         except:
+            g.DB_LIGHTNINGS.rollback()
             return jsonify({'status_code': 500, 'message': 'database error on xdde_requests'}), 500
         # At this point the database has to be populated with lightnings
         if len(lightnings) > 0:
@@ -244,10 +239,11 @@ def retrieve_lightnings(year, month, day, hour):
                 cursor = g.DB_LIGHTNINGS.cursor()
                 for sql in sql_lightnings:
                     cursor.execute(sql)
-                g.DB_LIGHTNINGS.commit()
                 cursor.close()
             except:
+                g.DB_LIGHTNINGS.rollback()
                 return jsonify({'status_code': 500, 'message': 'database error on lightnings'}), 500
+        g.DB_LIGHTNINGS.commit()
         return jsonify(lightnings)
 
 if __name__ == "__main__":
