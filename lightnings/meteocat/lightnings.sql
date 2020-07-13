@@ -19,6 +19,7 @@ ALTER TABLE public.xdde_requests
 
 CREATE TABLE public.lightnings
 (
+  id bigserial,
   _id bigint,
   _data timestamp with time zone NOT NULL,
   _correntPic double precision NOT NULL,
@@ -32,7 +33,7 @@ CREATE TABLE public.lightnings
   _coordenades_latitud double precision NOT NULL,
   _coordenades_longitud double precision NOT NULL,
   ts timestamp with time zone DEFAULT (now() at time zone 'utc'),
-  CONSTRAINT pk_lightnings PRIMARY KEY (_id)
+  CONSTRAINT pk_lightnings PRIMARY KEY (id)
 )
 WITH (
   OIDS = FALSE
