@@ -10,6 +10,17 @@ $ sudo mkdir -p /home/db/postgres/gisfire
 $ sudo chown postgres:postgres /home/db/postgres/gisfire
 $ sudo pg_createcluster -d /home/db/postgres/gisfire -l /home/db/postgres/gisfire/gisfire.log -p 5435 --start --start-conf auto 10 gisfire
 ```
+The cluster has to be set up in the UTC timezone:
+
+```bash
+$ sudo nano /etc/postgresql/10/gisfire/postgresql.conf  
+```
+
+and set the line:
+
+```bash
+timezone = 'utc'
+```
 
 ### 2. Create a gisfire database user
 
