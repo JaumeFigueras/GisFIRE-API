@@ -201,8 +201,8 @@ def retrieve_lightnings(year, month, day, hour):
                 if row[9] is not None:
                     ln['idMunicipi'] = row[9]
                 ln['coordenades'] = dict()
-                ln['coordenades']['longitud'] = row[10]
-                ln['coordenades']['latitud'] = row[11]
+                ln['coordenades']['longitud'] = row[11]
+                ln['coordenades']['latitud'] = row[10]
                 lightnings.append(ln)
             # Return data
             return jsonify(lightnings)
