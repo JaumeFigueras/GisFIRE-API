@@ -196,7 +196,7 @@ def retrieve_lightnings(year, month, day, hour):
                 ln['ellipse']['eixMajor'] = row[4]
                 ln['ellipse']['eixMenor'] = row[5]
                 ln['ellipse']['angle'] = row[6]
-                ln['numSnesors'] = row[7]
+                ln['numSensors'] = row[7]
                 ln['nuvolTerra'] = row[8]
                 if row[9] is not None:
                     ln['idMunicipi'] = row[9]
