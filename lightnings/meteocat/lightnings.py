@@ -86,7 +86,7 @@ def auth_error(status):
 def verify_password(username, password):
     if username is None or username == '':
         return None
-    sql ="SELECT token, admin, id, valid_until FROM tokens WHERE username = %s"
+    sql ="SELECT token, admin, id, valid_until FROM tokens WHERE username = '%s'"
     cursor = g.DB_LOG.cursor()
     cursor.execute(sql, (username, ))
     row = cursor.fetchone()
