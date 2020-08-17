@@ -6,14 +6,12 @@ API to manage gisfire data
 ### 1. Create a postgres cluster
 
 ```bash
-$ sudo mkdir -p /home/db/postgres/gisfire
-$ sudo chown postgres:postgres /home/db/postgres/gisfire
-$ sudo pg_createcluster -d /home/db/postgres/gisfire -l /home/db/postgres/gisfire/gisfire.log -p 5435 --start --start-conf auto 10 gisfire
+$ sudo pg_createcluster -d /home/postgresql-12/gisfire -l /home/postgresql-12/gisfire/gisfire.log -p 5433 --start --start-conf auto 12 gisfire
 ```
 The cluster has to be set up in the UTC timezone:
 
 ```bash
-$ sudo nano /etc/postgresql/10/gisfire/postgresql.conf  
+$ sudo nano /etc/postgresql/12/gisfire/postgresql.conf  
 ```
 
 and set the line:
