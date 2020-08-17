@@ -1,4 +1,4 @@
-CREATE TABLE public.xdde_requests
+CREATE TABLE public.meteocat_xdde_requests
 (
    year integer,
    month integer,
@@ -13,11 +13,11 @@ WITH (
   OIDS = FALSE
 )
 ;
-ALTER TABLE public.xdde_requests
+ALTER TABLE public.meteocat_xdde_requests
   OWNER TO gisfireuser
 ;
 
-CREATE TABLE public.lightnings
+CREATE TABLE public.meteocat_lightnings
 (
   id bigserial,
   _id bigint,
@@ -39,8 +39,8 @@ WITH (
   OIDS = FALSE
 )
 ;
-ALTER TABLE public.lightnings
+ALTER TABLE public.meteocat_lightnings
   OWNER TO gisfireuser
 ;
-SELECT AddGeometryColumn ('public', 'lightnings', 'geom', 4258, 'POINT', 2)
+SELECT AddGeometryColumn ('public', 'meteocat_lightnings', 'geom', 4258, 'POINT', 2)
 ;
