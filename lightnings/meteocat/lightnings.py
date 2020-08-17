@@ -212,12 +212,12 @@ def retrieve_lightnings(year, month, day, hour):
         return_code, lightnings = download_thread(year, month, day, hour, meteocat_api_key)
         if return_code == 200:
             if new_request:
-                sql_lightnings = "INSERT INTO xdde_requests (year, month, day, hour, result_code, number_of_lightnings)\
+                sql_lightnings = "INSERT INTO meteocat_xdde_requests (year, month, day, hour, result_code, number_of_lightnings)\
                                     VALUES ({0:}, {1:}, {2:}, {3:}, {4:}, {5:})".format(year, month, day, hour, return_code, len(lightnings))
             else:
-                sql_lightnings = "UPDATE xdde_requests SET result_code = {0:}, number_of_lightnings = {1:}".format(return_code, len(lightnings))
+                sql_lightnings = "UPDATE meteocat_xdde_requests SET result_code = {0:}, number_of_lightnings = {1:}".format(return_code, len(lightnings))
         else:
-            sql_lightnings = "INSERT INTO xdde_requests (year, month, day, hour, result_code)\
+            sql_lightnings = "INSERT INTO meteocat_xdde_requests (year, month, day, hour, result_code)\
                                 VALUES ({0:}, {1:}, {2:}, {3:}, {4:})".format(year, month, day, hour, return_code)
         try:
             cursor = g.DB_LIGHTNINGS.cursor()
@@ -228,12 +228,12 @@ def retrieve_lightnings(year, month, day, hour):
                 return jsonify({'status_code': 502, 'message': 'error while accessing remote server'}), 502
         except:
             g.DB_LIGHTNINGS.rollback()
-            return jsonify({'status_code': 500, 'message': 'database error on xdde_requests'}), 500
+            return jsonify({'status_code': 500, 'message': 'database error on meteocat_xdde_requests'}), 500
         # At this point the database has to be populated with lightnings
         if len(lightnings) > 0:
             sql_lightnings = list()
             for ln in lightnings:
-                sql_lightnings.append("INSERT INTO lightnings (_id, _data, _correntPic, _chi2, _ellipse_eixMajor, _ellipse_eixMenor, _ellipse_angle, _numSensors, _nuvolTerra, _idMunicipi, _coordenades_longitud, _coordenades_latitud, geom) VALUES ({0:}, '{1:}', {2:}, {3:}, {4:}, {5:}, {6:}, {7:}, {8:}, {9:}, {10:}, {11:}, ST_GeomFromText('POINT({10:} {11:})', 4258));". \
+                sql_lightnings.append("INSERT INTO meteocat_lightnings (_id, _data, _correntPic, _chi2, _ellipse_eixMajor, _ellipse_eixMenor, _ellipse_angle, _numSensors, _nuvolTerra, _idMunicipi, _coordenades_longitud, _coordenades_latitud, geom) VALUES ({0:}, '{1:}', {2:}, {3:}, {4:}, {5:}, {6:}, {7:}, {8:}, {9:}, {10:}, {11:}, ST_GeomFromText('POINT({10:} {11:})', 4258));". \
                                         format(ln['id'], ln['data'], ln['correntPic'], ln['chi2'], ln['ellipse']['eixMajor'], ln['ellipse']['eixMenor'], ln['ellipse']['angle'], ln['numSensors'], ln['nuvolTerra'], ln['idMunicipi'] if 'idMunicipi' in ln else 'NULL', ln['coordenades']['longitud'], ln['coordenades']['latitud']))
             try:
                 cursor = g.DB_LIGHTNINGS.cursor()
