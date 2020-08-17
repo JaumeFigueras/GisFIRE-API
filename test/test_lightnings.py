@@ -72,11 +72,11 @@ def test_database(client):
     cursor = conn.cursor()
     cursor.execute(sql)
     assert cursor.rowcount == 4
-    sql = "SELECT * FROM xdde_requests"
+    sql = "SELECT * FROM meteocat_xdde_requests"
     cursor = conn.cursor()
     cursor.execute(sql)
     assert cursor.rowcount == 3
-    sql = "SELECT * FROM lightnings"
+    sql = "SELECT * FROM meteocat_lightnings"
     cursor = conn.cursor()
     cursor.execute(sql)
     assert cursor.rowcount == 3
@@ -382,11 +382,11 @@ def test_lightning_route_existing_error_with_0_lightnings(client):
     assert len(responses.calls) == 1
     assert len(rv.get_json()) == 0
     conn = lightnings.app.config['TEST_CONNECTION']
-    sql = "SELECT * FROM xdde_requests WHERE result_code = 200"
+    sql = "SELECT * FROM meteocat_xdde_requests WHERE result_code = 200"
     cursor = conn.cursor()
     cursor.execute(sql)
     assert cursor.rowcount == 3
-    sql = "SELECT * FROM lightnings"
+    sql = "SELECT * FROM meteocat_lightnings"
     cursor = conn.cursor()
     cursor.execute(sql)
     assert cursor.rowcount == 3
@@ -456,15 +456,15 @@ def test_lightning_route_existing_with_error_3_lightnings(client):
     assert len(responses.calls) == 1
     assert len(rv.get_json()) == 3
     conn = lightnings.app.config['TEST_CONNECTION']
-    sql = "SELECT * FROM xdde_requests WHERE result_code = 200"
+    sql = "SELECT * FROM meteocat_xdde_requests WHERE result_code = 200"
     cursor = conn.cursor()
     cursor.execute(sql)
     assert cursor.rowcount == 3
-    sql = "SELECT * FROM lightnings"
+    sql = "SELECT * FROM meteocat_lightnings"
     cursor = conn.cursor()
     cursor.execute(sql)
     assert cursor.rowcount == 6
-    sql = "DELETE FROM lightnings WHERE _id = 18489834 OR _id = 18489835 OR _id = 18489834"
+    sql = "DELETE FROM meteocat_lightnings WHERE _id = 18489834 OR _id = 18489835 OR _id = 18489834"
     cursor = conn.cursor()
     cursor.execute(sql)
     conn.commit()
@@ -494,15 +494,15 @@ def test_lightning_route_new_server_error(client):
     assert rv.get_json()['status_code'] == 502
     assert rv.get_json()['message'] == 'error while accessing remote server'
     conn = lightnings.app.config['TEST_CONNECTION']
-    sql = "SELECT * FROM xdde_requests WHERE result_code = 404"
+    sql = "SELECT * FROM meteocat_xdde_requests WHERE result_code = 404"
     cursor = conn.cursor()
     cursor.execute(sql)
     assert cursor.rowcount == 1
-    sql = "SELECT * FROM lightnings"
+    sql = "SELECT * FROM meteocat_lightnings"
     cursor = conn.cursor()
     cursor.execute(sql)
     assert cursor.rowcount == 3
-    sql = "DELETE FROM xdde_requests WHERE result_code = 404"
+    sql = "DELETE FROM meteocat_xdde_requests WHERE result_code = 404"
     cursor = conn.cursor()
     cursor.execute(sql)
     conn.commit()
@@ -527,15 +527,15 @@ def test_lightning_route_new_with_0_lightnings(client):
     assert len(responses.calls) == 1
     assert len(rv.get_json()) == 0
     conn = lightnings.app.config['TEST_CONNECTION']
-    sql = "SELECT * FROM xdde_requests WHERE result_code = 200"
+    sql = "SELECT * FROM meteocat_xdde_requests WHERE result_code = 200"
     cursor = conn.cursor()
     cursor.execute(sql)
     assert cursor.rowcount == 3
-    sql = "SELECT * FROM lightnings"
+    sql = "SELECT * FROM meteocat_lightnings"
     cursor = conn.cursor()
     cursor.execute(sql)
     assert cursor.rowcount == 3
-    sql = "DELETE FROM xdde_requests WHERE year = 2020 AND month = 6 AND day = 1 AND hour = 20"
+    sql = "DELETE FROM meteocat_xdde_requests WHERE year = 2020 AND month = 6 AND day = 1 AND hour = 20"
     cursor = conn.cursor()
     cursor.execute(sql)
     conn.commit()
@@ -601,15 +601,15 @@ def test_lightning_route_new_with_3_lightnings(client):
     assert len(responses.calls) == 1
     assert len(rv.get_json()) == 3
     conn = lightnings.app.config['TEST_CONNECTION']
-    sql = "SELECT * FROM xdde_requests WHERE result_code = 200"
+    sql = "SELECT * FROM meteocat_xdde_requests WHERE result_code = 200"
     cursor = conn.cursor()
     cursor.execute(sql)
     assert cursor.rowcount == 3
-    sql = "SELECT * FROM lightnings"
+    sql = "SELECT * FROM meteocat_lightnings"
     cursor = conn.cursor()
     cursor.execute(sql)
     assert cursor.rowcount == 6
-    sql = "DELETE FROM xdde_requests WHERE year = 2020 AND month = 6 AND day = 1 AND hour = 20"
+    sql = "DELETE FROM meteocat_xdde_requests WHERE year = 2020 AND month = 6 AND day = 1 AND hour = 20"
     cursor = conn.cursor()
     cursor.execute(sql)
     conn.commit()
@@ -629,7 +629,7 @@ def test_lightning_route_wrong_query_result_code(client):
     responses.add(responses.GET, 'https://api.meteo.cat/xdde/v1/catalunya/2020/06/01/20', body='[]', status=200, content_type='application/json')
     # Lock database
     conn = lightnings.app.config['TEST_CONNECTION']
-    sql = "REVOKE SELECT, INSERT, UPDATE, DELETE ON xdde_requests FROM gisfireuser;"
+    sql = "REVOKE SELECT, INSERT, UPDATE, DELETE ON meteocat_xdde_requests FROM gisfireuser;"
     cursor = conn.cursor()
     cursor.execute(sql)
     cursor.close()
@@ -640,15 +640,15 @@ def test_lightning_route_wrong_query_result_code(client):
     rv = client.get('/2020/06/01/20', headers={'Authorization': 'Basic ' + base64.b64encode(bytes(username + ":" + password, 'ascii')).decode('ascii')})
     assert rv.get_json()['status_code'] == 500
     assert rv.get_json()['message'] == 'failed request check'
-    sql = "GRANT SELECT, INSERT, UPDATE, DELETE ON xdde_requests TO gisfireuser;"
+    sql = "GRANT SELECT, INSERT, UPDATE, DELETE ON meteocat_xdde_requests TO gisfireuser;"
     cursor = conn.cursor()
     cursor.execute(sql)
     conn.commit()
-    sql = "SELECT * FROM lightnings"
+    sql = "SELECT * FROM meteocat_lightnings"
     cursor = conn.cursor()
     cursor.execute(sql)
     assert cursor.rowcount == 3
-    sql = "SELECT * FROM xdde_requests"
+    sql = "SELECT * FROM meteocat_xdde_requests"
     cursor = conn.cursor()
     cursor.execute(sql)
     assert cursor.rowcount == 3
@@ -657,7 +657,7 @@ def test_lightning_route_wrong_query_result_code(client):
 def test_lightning_route_wrong_write_result_code(client):
     """ Test exception during write in the xdde_request table, it is tested revokingq user privileges """
     conn = lightnings.app.config['TEST_CONNECTION']
-    sql = "REVOKE INSERT, UPDATE, DELETE ON lightnings FROM gisfireuser;"
+    sql = "REVOKE INSERT, UPDATE, DELETE ON meteocat_lightnings FROM gisfireuser;"
     cursor = conn.cursor()
     cursor.execute(sql)
     cursor.close()
@@ -711,15 +711,15 @@ def test_lightning_route_wrong_write_result_code(client):
     rv = client.get('/2020/06/01/20', headers={'Authorization': 'Basic ' + base64.b64encode(bytes(username + ":" + password, 'ascii')).decode('ascii')})
     assert rv.get_json()['status_code'] == 500
     assert rv.get_json()['message'] == 'database error on lightnings'
-    sql = "SELECT * FROM lightnings"
+    sql = "SELECT * FROM meteocat_lightnings"
     cursor = conn.cursor()
     cursor.execute(sql)
     assert cursor.rowcount == 3
-    sql = "SELECT * FROM xdde_requests"
+    sql = "SELECT * FROM meteocat_xdde_requests"
     cursor = conn.cursor()
     cursor.execute(sql)
     assert cursor.rowcount == 3
-    sql = "GRANT INSERT, UPDATE, DELETE ON lightnings TO gisfireuser;"
+    sql = "GRANT INSERT, UPDATE, DELETE ON meteocat_lightnings TO gisfireuser;"
     cursor = conn.cursor()
     cursor.execute(sql)
     conn.commit()

@@ -159,7 +159,7 @@ def retrieve_lightnings(year, month, day, hour):
     except:
         return jsonify({'status_code': 500, 'message': 'failed log action'}), 500
     # Now check if this request is new or not
-    sql_lightnings = "SELECT result_code, number_of_lightnings FROM xdde_requests \
+    sql_lightnings = "SELECT result_code, number_of_lightnings FROM meteocat_xdde_requests \
                         WHERE year = {0:} AND month = {1:} AND day = {2:} AND hour = {3:}".format(year, month, day, hour)
     try:
         cursor = g.DB_LIGHTNINGS.cursor()
@@ -180,7 +180,7 @@ def retrieve_lightnings(year, month, day, hour):
             return jsonify([])
         else:
             # Read the database and prepare json
-            sql_lightnings = "SELECT _id, _data, _correntPic, _chi2, _ellipse_eixMajor, _ellipse_eixMenor, _ellipse_angle, _numSensors, _nuvolTerra, _idMunicipi, _coordenades_latitud, _coordenades_longitud FROM lightnings WHERE _data >= '{0:04d}-{1:02d}-{2:02d}T{3:02d}:00:00Z' AND _data <= '{0:04d}-{1:02d}-{2:02d}T{3:02d}:59:59Z'".format(year, month, day, hour)
+            sql_lightnings = "SELECT _id, _data, _correntPic, _chi2, _ellipse_eixMajor, _ellipse_eixMenor, _ellipse_angle, _numSensors, _nuvolTerra, _idMunicipi, _coordenades_latitud, _coordenades_longitud FROM meteocat_lightnings WHERE _data >= '{0:04d}-{1:02d}-{2:02d}T{3:02d}:00:00Z' AND _data <= '{0:04d}-{1:02d}-{2:02d}T{3:02d}:59:59Z'".format(year, month, day, hour)
             print(sql_lightnings)
             cursor = g.DB_LIGHTNINGS.cursor()
             cursor.execute(sql_lightnings)
