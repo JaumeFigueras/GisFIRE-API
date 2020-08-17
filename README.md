@@ -34,9 +34,10 @@ $ exit
 
 ```bash
 $ sudo apt-get install python3-flask-*
-$ sudo pip3 install Flask-HTTPAuth
+$ sudo pip3 install --upgrade pip
+$ sudo pip3 install --upgrade Flask-HTTPAuth
 $ sudo pip3 install configparser
 $ exit
 ```
-poccible conflic on ubuntu 20.04 and HTTPAuth, better install pip3 newer version
+possible conflict on ubuntu 20.04 and HTTPAuth, better install pip3 newer version
 on 18.04 there is no problem
