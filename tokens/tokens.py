@@ -10,7 +10,7 @@ import configparser
 import datetime
 import dateutil.parser
 
-CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!+-$%&_"
+CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!()_:;@?"
 
 app = Flask(__name__)
 auth = HTTPBasicAuth()
