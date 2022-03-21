@@ -29,7 +29,6 @@ def create_app(db_connection=None):
     @app.errorhandler(401)
     def page_error_401(error):
         from .user import UserAccess
-        from . import db
 
         UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
                    auth.current_user()).record_access(db, 401)
@@ -38,7 +37,6 @@ def create_app(db_connection=None):
     @app.errorhandler(404)
     def page_error_404(error):
         from .user import UserAccess
-        from . import db
 
         UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
                    auth.current_user()).record_access(db, 404)
@@ -47,7 +45,6 @@ def create_app(db_connection=None):
     @app.errorhandler(405)
     def page_error_405(error):
         from .user import UserAccess
-        from . import db
 
         UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
                    auth.current_user()).record_access(db, 405)
@@ -56,7 +53,6 @@ def create_app(db_connection=None):
     @app.route('/')
     def main():
         from .user import UserAccess
-        from . import db
 
         UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
                    auth.current_user()).record_access(db, 500)
