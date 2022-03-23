@@ -134,7 +134,7 @@ def get_lightnings(year, month, day):
         app.json_encoder = Lightning.GeoJSONEncoder
     else:
         app.json_encoder = Lightning.JSONEncoder
-    txt = jsonify(lightnings[0].x)
+    txt = jsonify(lightnings)
     UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
                auth.current_user()).record_access(db)
     return txt, 200
