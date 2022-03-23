@@ -103,6 +103,10 @@ def get_lightnings(year, month, day):
                             all()
                         for lightning in lights:
                             lightning._coordinates_latitude = 0.0
+                        for lightning in lights:
+                            if lightning._coordinates_latitude != 0.0:
+                                return jsonify(lightnings), 406
+
                     else:
                         mixed = db.session.query(Lightning, func.ST_X(Lightning.geometry.ST_Transform(int(srid))),
                                                  func.ST_Y(Lightning.geometry.ST_Transform(int(srid)))). \
