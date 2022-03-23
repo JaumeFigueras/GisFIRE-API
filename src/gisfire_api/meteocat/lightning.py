@@ -110,11 +110,10 @@ def get_lightnings(year, month, day):
                             all()
                         lights = list()
                         for lightning, x, y in mixed:
-                            return jsonify(x), 200
                             lightning.y = y
                             lightning.x = x
                             lightning.srid = srid
-                            db.session.merge(lightning)
+                            return jsonify(lightning.x), 200
                             lights.append(lightning)
                     if len(lights) != req.number_of_lightnings:
                         # A problem with the database have appeared
