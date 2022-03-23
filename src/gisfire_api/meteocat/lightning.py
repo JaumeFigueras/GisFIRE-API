@@ -114,7 +114,6 @@ def get_lightnings(year, month, day):
                             lightning.x = x
                             lightning.srid = srid
                             lights.append(lightning)
-                        return jsonify(lights[0].x), 200
                     if len(lights) != req.number_of_lightnings:
                         # A problem with the database have appeared
                         UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
@@ -123,6 +122,7 @@ def get_lightnings(year, month, day):
                     else:
                         # The lightnings are added to the list
                         lightnings += lights
+                    return jsonify(lightnings[0].x), 200
             else:
                 # The previous request was unsuccessful
                 # Make a query to the MeteoCat API
