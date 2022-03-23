@@ -134,9 +134,9 @@ def get_lightnings(year, month, day):
         app.json_encoder = Lightning.GeoJSONEncoder
     else:
         app.json_encoder = Lightning.JSONEncoder
+    return jsonify(lightnings[0].x), 200
     UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
                auth.current_user()).record_access(db)
-    return jsonify(lightnings[0].x), 200
     return jsonify(lightnings), 200
 
 
