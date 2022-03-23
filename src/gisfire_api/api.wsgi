@@ -5,10 +5,8 @@ from gisfire_api import create_app
 
 logging.basicConfig(stream=sys.stderr)
 
-application = create_app()
-application.secret_key = '12345678998765431'
 
-"""def application(environ, start_response):
+def application(environ, start_response):
     params = dict()
     params['GISFIRE_DB_HOST'] = environ['GISFIRE_DB_HOST']
     params['GISFIRE_DB_PORT'] = environ['GISFIRE_DB_PORT']
@@ -19,5 +17,4 @@ application.secret_key = '12345678998765431'
     app = create_app(params=params)
     app.secret_key = '12345678998765431'
 
-    return app
-"""
+    return app(environ, start_response)
