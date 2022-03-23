@@ -122,8 +122,7 @@ def get_lightnings(year, month, day):
                     else:
                         # The lightnings are added to the list
                         lightnings += lights
-                    if hour == 23 and len(lightnings) > 0:
-                        return jsonify(lightnings[0].x), 200
+                    return jsonify(hours), 200
             else:
                 # The previous request was unsuccessful
                 # Make a query to the MeteoCat API
