@@ -12,11 +12,11 @@ def create_app(db_connection=None, params=None):
     app = Flask(__name__, instance_relative_config=True)
     if db_connection is None:  # pragma: no cover
         # This settings are for real application with WSGI and Apache, so can't be tested in a testing environment
-        host = params('GISFIRE_DB_HOST'),
-        port = params('GISFIRE_DB_PORT'),
-        database = params('GISFIRE_DB_DATABASE'),
-        username = params('GISFIRE_DB_USERNAME'),
-        password = params('GISFIRE_DB_PASSWORD')
+        host = params['GISFIRE_DB_HOST']
+        port = params['GISFIRE_DB_PORT']
+        database = params['GISFIRE_DB_DATABASE']
+        username = params['GISFIRE_DB_USERNAME']
+        password = params['GISFIRE_DB_PASSWORD']
         uri = f"postgresql+psycopg2://{username}:{password}@{host}/{database}:{port}"
         app.config["SQLALCHEMY_DATABASE_URI"] = uri
     else:
