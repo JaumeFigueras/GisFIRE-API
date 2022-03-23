@@ -128,7 +128,6 @@ def get_lightnings(year, month, day):
                 lightnings, status_code = get_from_remote(current_date, lightnings)
         if status_code != 200:
             return jsonify(status_code=status_code), status_code
-    return jsonify(lightnings[0].x), 200
     if output_format == 'json':
         app.json_encoder = Lightning.JSONEncoder
     elif output_format == 'geojson':
@@ -137,6 +136,7 @@ def get_lightnings(year, month, day):
         app.json_encoder = Lightning.JSONEncoder
     UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
                auth.current_user()).record_access(db)
+    return jsonify(lightnings[0].x), 200
     return jsonify(lightnings), 200
 
 
