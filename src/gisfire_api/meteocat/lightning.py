@@ -122,14 +122,13 @@ def get_lightnings(year, month, day):
                     else:
                         # The lightnings are added to the list
                         lightnings += lights
-                if hour == 23 and len(lightnings) > 0:
-                    return jsonify(lightnings[0].x), 200
             else:
                 # The previous request was unsuccessful
                 # Make a query to the MeteoCat API
                 lightnings, status_code = get_from_remote(current_date, lightnings)
         if status_code != 200:
             return jsonify(status_code=status_code), status_code
+    return jsonify(lightnings[0].x), 200
     if output_format == 'json':
         app.json_encoder = Lightning.JSONEncoder
     elif output_format == 'geojson':
