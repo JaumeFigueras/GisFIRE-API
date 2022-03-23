@@ -101,12 +101,6 @@ def get_lightnings(year, month, day):
                             filter(Lightning.date < current_date + datetime.timedelta(hours=1)). \
                             order_by(Lightning.date). \
                             all()
-                        for lightning in lights:
-                            lightning._coordinates_latitude = 0.0
-                        for lightning in lights:
-                            if lightning._coordinates_latitude != 0.0:
-                                return jsonify(lightnings), 406
-
                     else:
                         mixed = db.session.query(Lightning, func.ST_X(Lightning.geometry.ST_Transform(int(srid))),
                                                  func.ST_Y(Lightning.geometry.ST_Transform(int(srid)))). \
@@ -116,8 +110,8 @@ def get_lightnings(year, month, day):
                             all()
                         lights = list()
                         for lightning, x, y in mixed:
-                            lightning._coordinates_latitude = y
-                            lightning._coordinates_longitude = x
+                            lightning.y = y
+                            lightning.x = x
                             lightning.srid = srid
                             lights.append(lightning)
                     if len(lights) != req.number_of_lightnings:
