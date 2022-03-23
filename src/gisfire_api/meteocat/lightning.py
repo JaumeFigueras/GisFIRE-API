@@ -87,8 +87,7 @@ def get_lightnings(year, month, day):
         if req is None:
             # There are no previous requests recorded
             # Make a query to the MeteoCat API
-            # lightnings, status_code = get_from_remote(current_date, lightnings)
-            pass
+            lightnings, status_code = get_from_remote(current_date, lightnings)
         else:
             # The date has been requested before
             status_code = 200
@@ -123,11 +122,11 @@ def get_lightnings(year, month, day):
                     else:
                         # The lightnings are added to the list
                         lightnings += lights
+                    return jsonify(lightnings[0].x), 200
             else:
                 # The previous request was unsuccessful
                 # Make a query to the MeteoCat API
-                # lightnings, status_code = get_from_remote(current_date, lightnings)
-                pass
+                lightnings, status_code = get_from_remote(current_date, lightnings)
         if status_code != 200:
             return jsonify(status_code=status_code), status_code
     if output_format == 'json':
