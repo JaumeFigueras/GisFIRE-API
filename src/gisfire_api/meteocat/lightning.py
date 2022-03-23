@@ -101,6 +101,8 @@ def get_lightnings(year, month, day):
                             filter(Lightning.date < current_date + datetime.timedelta(hours=1)). \
                             order_by(Lightning.date). \
                             all()
+                        for lightning in lights:
+                            lightning._coordinates_latitude = 0.0
                     else:
                         mixed = db.session.query(Lightning, func.ST_X(Lightning.geometry.ST_Transform(int(srid))),
                                                  func.ST_Y(Lightning.geometry.ST_Transform(int(srid)))). \
