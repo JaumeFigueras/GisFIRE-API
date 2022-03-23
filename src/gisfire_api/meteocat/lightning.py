@@ -110,6 +110,7 @@ def get_lightnings(year, month, day):
                             all()
                         lights = list()
                         for lightning, x, y in mixed:
+                            return jsonify(x), 200
                             lightning.y = y
                             lightning.x = x
                             lightning.srid = srid
