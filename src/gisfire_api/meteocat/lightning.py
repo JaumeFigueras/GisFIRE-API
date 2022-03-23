@@ -113,8 +113,8 @@ def get_lightnings(year, month, day):
                             lightning.y = y
                             lightning.x = x
                             lightning.srid = srid
-                            return jsonify(lightning.x), 200
                             lights.append(lightning)
+                        return jsonify(lights[0].x), 200
                     if len(lights) != req.number_of_lightnings:
                         # A problem with the database have appeared
                         UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
