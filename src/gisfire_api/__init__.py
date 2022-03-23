@@ -17,7 +17,7 @@ def create_app(db_connection=None, params=None):
         database = params['GISFIRE_DB_DATABASE']
         username = params['GISFIRE_DB_USERNAME']
         password = params['GISFIRE_DB_PASSWORD']
-        uri = f"postgresql+psycopg2://{username}:{password}@{host}/{database}:{port}"
+        uri = f"postgresql+psycopg2://{username}:{password}@{host}:{port}/{database}"
         app.config["SQLALCHEMY_DATABASE_URI"] = uri
     else:
         uri = "postgresql+psycopg2://"
