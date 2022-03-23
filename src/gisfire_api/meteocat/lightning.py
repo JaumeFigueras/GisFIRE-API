@@ -108,12 +108,13 @@ def get_lightnings(year, month, day):
                             filter(Lightning.date < current_date + datetime.timedelta(hours=1)). \
                             order_by(Lightning.date). \
                             all()
+                        lights = list()
                         for lightning, x, y in mixed:
                             lightning.y = y
                             lightning.x = x
                             lightning.srid = srid
                             db.session.merge(lightning)
-                        lights = mixed[0]
+                            lights.append(lightning)
                     if len(lights) != req.number_of_lightnings:
                         # A problem with the database have appeared
                         UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
