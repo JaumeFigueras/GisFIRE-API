@@ -112,7 +112,7 @@ def get_lightnings(year, month, day):
                             lightning.y = y
                             lightning.x = x
                             lightning.srid = srid
-                        db.session.merge()
+                            db.session.merge(lightning)
                         lights = mixed[0]
                     if len(lights) != req.number_of_lightnings:
                         # A problem with the database have appeared
