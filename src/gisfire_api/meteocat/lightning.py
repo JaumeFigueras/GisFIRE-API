@@ -11,10 +11,14 @@ from ..user import UserAccess
 from gisfire_meteocat_lib.remote_api import meteocat_xdde_api
 from gisfire_meteocat_lib.classes.lightning import Lightning
 from gisfire_meteocat_lib.classes.lightning import LightningAPIRequest
+from requests.exceptions import RequestException
 
 import json
 import pytz
 import datetime
+
+from typing import List
+from typing import Tuple
 
 bp = Blueprint("meteocat_lightning", __name__, url_prefix="/v1/meteocat/lightning")
 
@@ -112,7 +116,7 @@ def get_lightnings(year, month, day):
     return jsonify(lightnings), 200
 
 
-def get_from_remote(current_date, lightnings):
+def get_from_remote(current_date: datetime.datetime, lightnings: List[Lightning]) -> Tuple[List[Lightning], int]:
     """
     TODO:
 
@@ -127,41 +131,50 @@ def get_from_remote(current_date, lightnings):
                    auth.current_user()).record_access(db, 401)
         return lightnings, 401
     # Request MeteoCat API
-    result = meteocat_xdde_api.get_lightnings(token, current_date.date(), current_date.hour)
-    if not (result['status_code'] is None):
-        # There is a response
-        if result['status_code'] != 200:
-            # The response is not successful, so the error is recorded and passed
-            light_request = db.session.query(LightningAPIRequest).\
-                filter(LightningAPIRequest.date == current_date).\
-                first()
-            if light_request is None:
-                light_request = LightningAPIRequest(current_date, result['status_code'])
-                db.session.add(light_request)
+    try:
+        result = meteocat_xdde_api.get_lightnings(token, current_date)
+        new_lightnings: List[Lightning] = result['lightnings']
+        lightning_request: LightningAPIRequest = result['lightning_api_request']
+        if not (lightning_request.http_status_code is None):
+            # There is a response
+            if lightning_request.http_status_code != 200:
+                # The response is not successful, so the error is recorded and passed
+                light_request = db.session.query(LightningAPIRequest).\
+                    filter(LightningAPIRequest.date == current_date).\
+                    first()
+                if light_request is None:
+                    light_request = LightningAPIRequest(current_date, lightning_request.http_status_code)
+                    db.session.add(light_request)
+                else:
+                    light_request.http_status_code = lightning_request.http_status_code
+                    db.session.commit()
+                UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
+                           auth.current_user()).record_access(db, lightning_request.http_status_code)
+                return lightnings, lightning_request.http_status_code
             else:
-                light_request.http_status_code = result['status_code']
-                db.session.commit()
-            UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
-                       auth.current_user()).record_access(db, result['status_code'])
-            return lightnings, result['status_code']
+                # The response is successful, the data and access are recorded and added to the lightnings list and
+                # continue loop
+                light_request = db.session.query(LightningAPIRequest).\
+                    filter(LightningAPIRequest.date == current_date).\
+                    first()
+                if light_request is None:
+                    light_request = LightningAPIRequest(current_date, lightning_request.http_status_code,
+                                                        lightning_request.number_of_lightnings)
+                    db.session.add(light_request)
+                else:
+                    light_request.http_status_code = lightning_request.http_status_code
+                    light_request.number_of_lightnings = lightning_request.number_of_lightnings
+                    db.session.commit()
+                if lightning_request.number_of_lightnings > 0:
+                    db.session.bulk_save_objects(new_lightnings)
+                lightnings += new_lightnings
+                return lightnings, 200
         else:
-            # The response is successful, the data and access are recorded and added to the lightnings list and
-            # continue loop
-            light_request = db.session.query(LightningAPIRequest).\
-                filter(LightningAPIRequest.date == current_date).\
-                first()
-            if light_request is None:
-                light_request = LightningAPIRequest(current_date, result['status_code'], len(result['data']))
-                db.session.add(light_request)
-            else:
-                light_request.http_status_code = result['status_code']
-                light_request.number_of_lightnings = len(result['data'])
-                db.session.commit()
-            if len(result['data']) > 0:
-                db.session.bulk_save_objects(result['data'])
-            lightnings += result['data']
-            return lightnings, 200
-    else:
+            # There is no response, so an exception should have occurred
+            UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
+                       auth.current_user()).record_access(db, 500)
+            return lightnings, 500
+    except RequestException:
         # There is no response, so an exception should have occurred
         UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
                    auth.current_user()).record_access(db, 500)
