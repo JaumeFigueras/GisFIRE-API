@@ -112,7 +112,7 @@ def get_lightnings(year, month, day):
                         for lightning, x, y in mixed:
                             lightning._coordinates_latitude = y
                             lightning._coordinates_longitude = x
-                            lightning.srid = 25831
+                            lightning.srid = srid
                             lights.append(lightning)
                     if len(lights) != req.number_of_lightnings:
                         # A problem with the database have appeared
