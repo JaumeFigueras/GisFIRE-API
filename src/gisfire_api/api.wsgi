@@ -13,6 +13,9 @@ def application(environ, start_response):
     params['GISFIRE_DB_DATABASE'] = environ['GISFIRE_DB_DATABASE']
     params['GISFIRE_DB_USERNAME'] = environ['GISFIRE_DB_USERNAME']
     params['GISFIRE_DB_PASSWORD'] = environ['GISFIRE_DB_PASSWORD']
-    app = create_app(params=params)
-    app.secret_key = '12345678998765431'
-    # return app
+
+    def test():
+        app = create_app(params=params)
+        app.secret_key = '12345678998765431'
+
+    return test
