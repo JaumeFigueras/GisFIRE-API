@@ -12,7 +12,7 @@ from gisfire_meteocat_lib.remote_api import meteocat_xdde_api
 from gisfire_meteocat_lib.classes.lightning import Lightning
 from gisfire_meteocat_lib.classes.lightning import LightningAPIRequest
 from requests.exceptions import RequestException
-
+from sqlalchemy import func
 import json
 import pytz
 import datetime
@@ -71,6 +71,10 @@ def get_lightnings(year, month, day):
             hours = today.hour  # Should be hour - 1, but then the range must be hour + 1. So hour is OK
     else:
         hours = 24
+    # Get the possible output SRID
+    srid = request.args.get('srid', default=None, type=int)
+    # Get the possible output format
+    output_format = request.args.get('format', default='json', type=str)
     # For all the possible hours to request
     lightnings = list()
     for hour in range(hours):
@@ -91,11 +95,25 @@ def get_lightnings(year, month, day):
                 # It has been requested successfully
                 if req.number_of_lightnings != 0:
                     # There are lightnings to process
-                    lights = db.session.query(Lightning). \
-                        filter(Lightning.date >= current_date). \
-                        filter(Lightning.date < current_date + datetime.timedelta(hours=1)). \
-                        order_by(Lightning.date). \
-                        all()
+                    if srid is None:
+                        lights = db.session.query(Lightning). \
+                            filter(Lightning.date >= current_date). \
+                            filter(Lightning.date < current_date + datetime.timedelta(hours=1)). \
+                            order_by(Lightning.date). \
+                            all()
+                    else:
+                        mixed = db.session.query(Lightning, func.ST_X(Lightning.geometry.ST_Transform(int(srid))),
+                                                 func.ST_Y(Lightning.geometry.ST_Transform(int(srid)))). \
+                            filter(Lightning.date >= current_date). \
+                            filter(Lightning.date < current_date + datetime.timedelta(hours=1)). \
+                            order_by(Lightning.date). \
+                            all()
+                        lights = list()
+                        for lightning, x, y in mixed:
+                            lightning._coordinates_latitude = y
+                            lightning._coordinates_longitude = x
+                            lightning.srid = 25831
+                            lights.append(lightning)
                     if len(lights) != req.number_of_lightnings:
                         # A problem with the database have appeared
                         UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
@@ -110,7 +128,12 @@ def get_lightnings(year, month, day):
                 lightnings, status_code = get_from_remote(current_date, lightnings)
         if status_code != 200:
             return jsonify(status_code=status_code), status_code
-    app.json_encoder = Lightning.JSONEncoder
+    if output_format == 'json':
+        app.json_encoder = Lightning.JSONEncoder
+    elif output_format == 'geojson':
+        app.json_encoder = Lightning.GeoJSONEncoder
+    else:
+        app.json_encoder = Lightning.JSONEncoder
     UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
                auth.current_user()).record_access(db)
     return jsonify(lightnings), 200
