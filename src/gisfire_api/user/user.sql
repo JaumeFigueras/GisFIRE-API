@@ -16,6 +16,9 @@ WITH (
 ALTER TABLE public.user_token
   OWNER TO gisfireuser
 ;
+GRANT ALL ON public.user_access
+  TO remotegisfireuser
+;
 
 CREATE TABLE public.user_access
 (
@@ -36,4 +39,7 @@ WITH (
 ;
 ALTER TABLE public.user_access
   OWNER TO gisfireuser
+;
+GRANT ALL ON public.user_access
+  TO remotegisfireuser
 ;
