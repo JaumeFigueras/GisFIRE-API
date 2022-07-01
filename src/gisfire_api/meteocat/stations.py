@@ -16,6 +16,7 @@ from sqlalchemy import func
 import json
 import pytz
 import datetime
+import dateutil.parser
 
 from typing import List
 from typing import Tuple
@@ -36,8 +37,8 @@ def main():
     return jsonify(status_code=500), 500
 
 
-@bp.route('/nearest', methods=['GET'])
 @bp.route('/nearest/', methods=['GET'])
+@bp.route('/nearest', methods=['GET'])
 @auth.login_required(role='user')
 def get_nearest_weather_station():
     """
@@ -58,7 +59,16 @@ def get_nearest_weather_station():
         UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
                    auth.current_user()).record_access(db, 422)
         return jsonify(status_code=422), 422
-    pass
+    # get the date
+    date = request.values['date']
+    try:
+        date = dateutil.parser.isoparse(date)
+    except ValueError as _:
+        UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
+                   auth.current_user()).record_access(db, 400)
+        return jsonify(status_code=400), 400
+    station = {'a': 0}
+    return jsonify(station)
 
 
 

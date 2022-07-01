@@ -16,7 +16,7 @@ WITH (
 ALTER TABLE public.user_token
   OWNER TO gisfireuser
 ;
-GRANT ALL ON public.user_access
+GRANT ALL ON public.user_token
   TO remotegisfireuser
 ;
 
