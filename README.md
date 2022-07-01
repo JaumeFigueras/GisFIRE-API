@@ -25,6 +25,7 @@ timezone = 'utc'
 ```bash
 $ sudo -i -u postgres
 $ createuser -p 5433 -P gisfireuser
+$ createdb -p 5433 -E UTF8 -O gisfireuser gisfiredb
 $ exit
 ```
 
