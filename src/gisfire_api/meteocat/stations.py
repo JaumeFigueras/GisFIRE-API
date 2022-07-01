@@ -9,10 +9,13 @@ from .. import db
 from ..auth import auth
 from ..user import UserAccess
 from gisfire_meteocat_lib.remote_api import meteocat_xdde_api
-from gisfire_meteocat_lib.classes.lightning import Lightning
+from gisfire_meteocat_lib.classes.weather_station import WeatherStation
+from gisfire_meteocat_lib.classes.weather_station import WeatherStationState
+from gisfire_meteocat_lib.classes.weather_station import WeatherStationStateCategory
 from gisfire_meteocat_lib.classes.lightning import LightningAPIRequest
 from requests.exceptions import RequestException
 from sqlalchemy import func
+from sqlalchemy import or_
 import json
 import pytz
 import datetime
@@ -59,15 +62,47 @@ def get_nearest_weather_station():
         UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
                    auth.current_user()).record_access(db, 422)
         return jsonify(status_code=422), 422
-    # get the date
-    date = request.values['date']
+    # Get the date
+    date: str = request.values['date']
     try:
-        date = dateutil.parser.isoparse(date)
+        date: datetime.datetime = dateutil.parser.isoparse(date)
     except ValueError as _:
         UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
                    auth.current_user()).record_access(db, 400)
         return jsonify(status_code=400), 400
-    station = {'a': 0}
+    # Get the SRID
+    srid: str = request.values['srid']
+    try:
+        srid: int = int(srid)
+    except ValueError as _:
+        UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
+                   auth.current_user()).record_access(db, 400)
+        return jsonify(status_code=400), 400
+    # Get the Lon
+    lon: str = request.values['lon'] if 'lon' in request.values else request.values['x']
+    try:
+        lon: float = float(lon)
+    except ValueError as _:
+        UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
+                   auth.current_user()).record_access(db, 400)
+        return jsonify(status_code=400), 400
+    # Get the Lon
+    lat: str = request.values['lat'] if 'lon' in request.values else request.values['y']
+    try:
+        lat: float = float(lat)
+    except ValueError as _:
+        UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
+                   auth.current_user()).record_access(db, 400)
+        return jsonify(status_code=400), 400
+    # Query station
+    station: WeatherStation = db.session.query(WeatherStation, WeatherStation.__geom.distance_centroid(
+        func.ST_Transform('SRID={0:d};POINT({1:f} {2:f})'.format(srid, lon, lat))).label('dist')).\
+        join(WeatherStationState, WeatherStation.id == WeatherStationState.meteocat_weather_station_id).\
+        filter(WeatherStationState.code == WeatherStationStateCategory.ACTIVE).\
+        filter(WeatherStationState.from_date <= date).\
+        filter(or_(WeatherStationState.to_date >= date, WeatherStationState.to_date is None)).\
+        order_by(dist).first()
+    # station = {'a': 0}
     return jsonify(station)
 
 
