@@ -61,9 +61,11 @@ def create_app(db_connection=None, params=None):
     from .user import user
     from .meteocat import lightning
     from .meteocat import stations
+    from .meteocat import data
 
     app.register_blueprint(user.bp)
     app.register_blueprint(lightning.bp)
     app.register_blueprint(stations.bp)
+    app.register_blueprint(data.bp)
 
     return app

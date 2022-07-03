@@ -17,14 +17,14 @@ postgresql_schema = factories.postgresql('postgresql_session', dbname='test', lo
     str(sql_meteocat_lib_folder) + '/meteocat_xdde.sql',
     str(sql_meteocat_lib_folder) + '/meteocat_xema.sql',
     str(test_folder) + '/sql-data/database_populate.sql',
-    str(test_folder) + '/sql-data/stations.sql',
-    str(test_folder) + '/sql-data/stations_states.sql',
+    str(test_folder) + '/sql-data/stations-11st.sql',
+    str(test_folder) + '/sql-data/stations-states-11st.sql',
     str(test_folder) + '/sql-data/variables.sql',
-    str(test_folder) + '/sql-data/variables_states.sql',
-    str(test_folder) + '/sql-data/variables_timebases.sql',
-    str(test_folder) + '/sql-data/stations_variables_states.sql',
-    str(test_folder) + '/sql-data/stations_variables_timebases.sql',
-    # str(test_folder) + '/sql-data/measures.sql',
+    str(test_folder) + '/sql-data/variables-states.sql',
+    str(test_folder) + '/sql-data/variables-timebases.sql',
+    str(test_folder) + '/sql-data/stations-variables-states-11st.sql',
+    str(test_folder) + '/sql-data/stations-variables-timebases-11st.sql',
+    str(test_folder) + '/sql-data/measures-11st.sql',
     ]
 )
 
