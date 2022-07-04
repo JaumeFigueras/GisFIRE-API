@@ -11,6 +11,15 @@ test_folder = Path(__file__).parent
 sql_meteocat_lib_folder = Path(gisfire_meteocat_lib.database.__file__).parent
 socket_dir = tempfile.TemporaryDirectory()
 postgresql_session = factories.postgresql_proc(port=None, unixsocketdir=socket_dir.name)
+# TODO: Load different schemas depending on tests to do to optimize time
+postgresql_auth_schema = factories.postgresql('postgresql_session', dbname='test_auth', load=[
+    str(test_folder) + '/database_init.sql',
+    str(test_folder.parent) + '/src/gisfire_api/user/user.sql',
+    str(sql_meteocat_lib_folder) + '/meteocat_xdde.sql',
+    str(sql_meteocat_lib_folder) + '/meteocat_xema.sql',
+    str(test_folder) + '/sql-data/database_populate.sql',
+    ]
+)
 postgresql_schema = factories.postgresql('postgresql_session', dbname='test', load=[
     str(test_folder) + '/database_init.sql',
     str(test_folder.parent) + '/src/gisfire_api/user/user.sql',

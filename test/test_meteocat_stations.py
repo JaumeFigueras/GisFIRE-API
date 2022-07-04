@@ -2,10 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from base64 import b64encode
-from freezegun import freeze_time
-from gisfire_meteocat_lib.remote_api import meteocat_urls
-from gisfire_meteocat_lib.remote_api import meteocat_api
-import requests
 import json
 
 
