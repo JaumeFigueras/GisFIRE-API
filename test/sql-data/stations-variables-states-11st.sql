@@ -16,6 +16,7 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
+
 --
 -- Data for Name: meteocat_station_variable_state_assoc; Type: TABLE DATA; Schema: public; Owner: gisfireuser
 --

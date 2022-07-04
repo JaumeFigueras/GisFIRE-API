@@ -5,6 +5,8 @@
 -- Dumped from database version 12.11 (Ubuntu 12.11-0ubuntu0.20.04.1)
 -- Dumped by pg_dump version 12.11 (Ubuntu 12.11-0ubuntu0.20.04.1)
 
+-- Started on 2022-07-04 14:08:26 CEST
+
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -17,6 +19,8 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
+-- TOC entry 3923 (class 0 OID 18474)
+-- Dependencies: 226
 -- Data for Name: meteocat_station_variable_time_assoc; Type: TABLE DATA; Schema: public; Owner: gisfireuser
 --
 
@@ -434,6 +438,8 @@ INSERT INTO public.meteocat_station_variable_time_assoc VALUES (232, 133, 9758, 
 INSERT INTO public.meteocat_station_variable_time_assoc VALUES (232, 133, 9759, '2022-07-01 15:57:30.749933+02');
 INSERT INTO public.meteocat_station_variable_time_assoc VALUES (232, 71, 9760, '2022-07-01 15:57:30.755537+02');
 
+
+-- Completed on 2022-07-04 14:08:26 CEST
 
 --
 -- PostgreSQL database dump complete
