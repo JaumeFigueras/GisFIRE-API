@@ -149,7 +149,6 @@ def get_measure_of_variable_at_station(station_code: str, variable_code: str):
             filter(Measure.date >= date_from). \
             filter(Measure.meteocat_weather_station_id == station.id). \
             filter(Measure.meteocat_variable_id == variable.id).first()
-        print(average[0])
         if average[0] is None:
             UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
                        auth.current_user()).record_access(db, 400)
