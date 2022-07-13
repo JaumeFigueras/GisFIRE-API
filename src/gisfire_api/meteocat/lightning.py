@@ -13,6 +13,7 @@ from gisfire_meteocat_lib.classes.lightning import Lightning
 from gisfire_meteocat_lib.classes.lightning import LightningAPIRequest
 from requests.exceptions import RequestException
 from sqlalchemy import func
+from geoalchemy2.types import Geometry
 import json
 import pytz
 import datetime
@@ -203,3 +204,116 @@ def get_from_remote(current_date: datetime.datetime, lightnings: List[Lightning]
         UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
                    auth.current_user()).record_access(db, 500)
         return lightnings, 500
+
+
+@bp.route('/<int:identifier>/', methods=['GET'])
+@bp.route('/<int:identifier>', methods=['GET'])
+@auth.login_required(role='user')
+def get_lightning(identifier):
+    """
+    TODO:
+
+    :param identifier:
+    :return:
+    """
+    lightning = db.session.query(Lightning).filter(Lightning.id == identifier).first()
+    if lightning is None:
+        UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
+                   auth.current_user()).record_access(db, 404)
+        return jsonify(status_code=404), 404
+    app.json_encoder = Lightning.JSONEncoder
+    txt = jsonify(lightning)
+    UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
+               auth.current_user()).record_access(db)
+    return txt, 200
+
+
+@bp.route('/near/<int:identifier>/<distance>/', methods=['GET'])
+@bp.route('/near/<int:identifier>/<distance>', methods=['GET'])
+@auth.login_required(role='user')
+def get_near_lightnings(identifier: int, distance: float):
+    """
+    TODO:
+
+    :return:
+    :rtype:
+    """
+    srid: int = Lightning.DEFAULT_SRID_LIGHTNINGS
+    if request.values is not None:
+        if 'srid' in request.values:
+            srid: str = request.values['srid']
+            try:
+                srid: int = int(srid)
+            except ValueError as _:
+                UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
+                           auth.current_user()).record_access(db, 400)
+                return jsonify(status_code=400), 400
+    # Convert distance to float
+    try:
+        distance: float = float(distance)
+    except ValueError as _:
+        UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
+                   auth.current_user()).record_access(db, 400)
+        return jsonify(status_code=400), 400
+
+    # Check the lightning exists
+    lightning, x, y = db.session.query(Lightning, func.ST_X(Lightning.geometry.ST_Transform(srid)),
+                                       func.ST_Y(Lightning.geometry.ST_Transform(srid))).\
+        filter(Lightning.id == identifier).first()
+    if lightning is None:
+        UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
+                   auth.current_user()).record_access(db, 404)
+        return jsonify(status_code=404), 404
+    lightning.y = y
+    lightning.x = x
+    lightning.srid = srid
+    lightnings = db.session.query(Lightning).\
+        filter(func.ST_Contains(func.ST_Buffer(func.ST_GeomFromEWKT('SRID={0:d};POINT({1:f} {2:f})'.format(srid, x, y)), distance), func.ST_Transform(Lightning.geometry, srid))).\
+        filter(Lightning.date <= lightning.date).\
+        filter(Lightning.date >= lightning.date - datetime.timedelta(hours=6)).\
+        filter(Lightning.id != identifier).\
+        all()
+    if lightning is None:
+        UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
+                   auth.current_user()).record_access(db)
+        return jsonify([]), 200
+    else:
+        app.json_encoder = Lightning.JSONEncoder
+        txt = jsonify(lightnings)
+        UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
+                   auth.current_user()).record_access(db)
+        return txt, 200
+
+
+@bp.route('/land_cover/<int:identifier>/', methods=['GET'])
+@bp.route('/land_cover/<int:identifier>', methods=['GET'])
+@auth.login_required(role='user')
+def get_lightning_land_cover(identifier: int, distance: float):
+    """
+    TODO:
+
+    :return:
+    :rtype:
+    """
+    # Create the landcover private class
+    class LandCover(db.Model):
+        __tablename__ = 'data_catalonia_land_cover'
+        fid = db.Column(db.Integer, primary_key=True)
+        id = db.Column(db.Integer)
+        nivell_2 = db.Column(db.Integer)
+        geom = db.Column('geom', Geometry(geometry_type='POLYGON', srid=25831))
+
+    # Check the lightning exists
+    lightning, land_cover = db.session.query(Lightning, LandCover).\
+        filter(Lightning.id == identifier).\
+        filter(func.ST_Contains(LandCover.geom, func.ST_Transform(Lightning.geometry, 25831))).\
+        first()
+    if lightning is None:
+        UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
+                   auth.current_user()).record_access(db, 404)
+        return jsonify(status_code=404), 404
+    app.json_encoder = Lightning.JSONEncoder
+    txt = jsonify(land_cover_type=land_cover.nivell_2)
+    UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
+               auth.current_user()).record_access(db)
+    return txt, 200
