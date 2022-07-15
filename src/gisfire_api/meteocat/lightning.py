@@ -239,6 +239,7 @@ def get_near_lightnings(identifier: int, distance: float):
     :rtype:
     """
     srid: int = Lightning.DEFAULT_SRID_LIGHTNINGS
+    hours: int = 6
     if request.values is not None:
         if 'srid' in request.values:
             srid: str = request.values['srid']
@@ -288,14 +289,14 @@ def get_near_lightnings(identifier: int, distance: float):
 @bp.route('/land_cover/<int:identifier>/', methods=['GET'])
 @bp.route('/land_cover/<int:identifier>', methods=['GET'])
 @auth.login_required(role='user')
-def get_lightning_land_cover(identifier: int, distance: float):
+def get_lightning_land_cover(identifier: int):
     """
     TODO:
 
     :return:
     :rtype:
     """
-    # Create the landcover private class
+    # Create the land cover private class
     class LandCover(db.Model):
         __tablename__ = 'data_catalonia_land_cover'
         fid = db.Column(db.Integer, primary_key=True)
@@ -304,14 +305,14 @@ def get_lightning_land_cover(identifier: int, distance: float):
         geom = db.Column('geom', Geometry(geometry_type='POLYGON', srid=25831))
 
     # Check the lightning exists
-    lightning, land_cover = db.session.query(Lightning, LandCover).\
-        filter(Lightning.id == identifier).\
-        filter(func.ST_Contains(LandCover.geom, func.ST_Transform(Lightning.geometry, 25831))).\
-        first()
+    lightning = db.session.query(Lightning).filter(Lightning.id == identifier).first()
     if lightning is None:
         UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
                    auth.current_user()).record_access(db, 404)
         return jsonify(status_code=404), 404
+    land_cover = db.session.query(LandCover).\
+        filter(func.ST_Contains(LandCover.geom, func.ST_Transform(lightning.geometry, 25831))).\
+        first()
     app.json_encoder = Lightning.JSONEncoder
     txt = jsonify(land_cover_type=land_cover.nivell_2)
     UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),

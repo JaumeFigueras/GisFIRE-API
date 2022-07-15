@@ -813,7 +813,7 @@ def test_api_meteocat_lightning_id_02(api, postgresql_schema):
     data = json.loads(response.get_data(as_text=True))
     assert len(data) == 14
     assert data['id'] == 1
-    assert data['meteocat_id'] == 123456780
+    assert data['meteocat_id'] == 22448369
     cursor = postgresql_schema.cursor()
     cursor.execute("SELECT count(*) FROM user_access")
     record = cursor.fetchone()
@@ -844,11 +844,11 @@ def test_api_meteocat_near_lightnings_id_00(api, postgresql_schema):
         'Authorization': 'Basic {}'.format(b64encode(b"jack.skellington:0123456789asdfghjkl").decode("utf-8")),
         'X-Api-Key': '1234'
     }
-    response = api.get('/v1/meteocat/lightning/near/6/2000?srid=25831', headers=headers)
+    response = api.get('/v1/meteocat/lightning/near/1150833/4000?srid=25831', headers=headers)
     assert response.content_type == 'application/json'
     assert response.status_code == 200
     data = json.loads(response.get_data(as_text=True))
-    assert len(data) == 5
+    assert len(data) == 7
     cursor = postgresql_schema.cursor()
     cursor.execute("SELECT count(*) FROM user_access")
     record = cursor.fetchone()
@@ -857,10 +857,47 @@ def test_api_meteocat_near_lightnings_id_00(api, postgresql_schema):
     record = cursor.fetchone()
     assert record[1] == 3
     assert record[2] == '127.0.0.1'
-    assert record[3] == 'http://localhost/v1/meteocat/lightning/near/6/2000?srid=25831'
+    assert record[3] == 'http://localhost/v1/meteocat/lightning/near/1150833/4000?srid=25831'
     assert record[4] == 'GET'
     assert record[5] == '{"srid": "25831"}'
     assert record[6] == 200
+
+
+def test_api_meteocat_land_cover_lightnings_id_00(api, postgresql_schema):
+    """
+    Tests same day that has some data in the database.
+
+    :param api: Flask API fixture
+    :param postgresql_schema: Database fixture
+    :return: None
+    """
+    cursor = postgresql_schema.cursor()
+    cursor.execute("SELECT count(*) FROM user_access")
+    record = cursor.fetchone()
+    count = record[0]
+    headers = {
+        'Authorization': 'Basic {}'.format(b64encode(b"jack.skellington:0123456789asdfghjkl").decode("utf-8")),
+        'X-Api-Key': '1234'
+    }
+    response = api.get('/v1/meteocat/lightning/land_cover/1151242', headers=headers)
+    assert response.content_type == 'application/json'
+    assert response.status_code == 200
+    data = json.loads(response.get_data(as_text=True))
+    assert len(data) == 1
+    assert data['land_cover_type'] == 111
+    cursor = postgresql_schema.cursor()
+    cursor.execute("SELECT count(*) FROM user_access")
+    record = cursor.fetchone()
+    assert record[0] == count + 1
+    cursor.execute("SELECT id, user_id, ip, url, method, params, result_code FROM user_access")
+    record = cursor.fetchone()
+    assert record[1] == 3
+    assert record[2] == '127.0.0.1'
+    assert record[3] == 'http://localhost/v1/meteocat/lightning/land_cover/1151242'
+    assert record[4] == 'GET'
+    assert record[5] == '{}'
+    assert record[6] == 200
+
 
 
 

@@ -25,6 +25,7 @@ postgresql_schema = factories.postgresql('postgresql_session', dbname='test', lo
     str(test_folder.parent) + '/src/gisfire_api/user/user.sql',
     str(sql_meteocat_lib_folder) + '/meteocat_xdde.sql',
     str(sql_meteocat_lib_folder) + '/meteocat_xema.sql',
+    str(test_folder) + '/sql-data/lightnings.sql',
     str(test_folder) + '/sql-data/database_populate.sql',
     str(test_folder) + '/sql-data/stations-11st.sql',
     str(test_folder) + '/sql-data/stations-states-11st.sql',
@@ -34,6 +35,8 @@ postgresql_schema = factories.postgresql('postgresql_session', dbname='test', lo
     str(test_folder) + '/sql-data/stations-variables-states-11st.sql',
     str(test_folder) + '/sql-data/stations-variables-timebases-11st.sql',
     str(test_folder) + '/sql-data/measures-11st.sql',
+    str(test_folder) + '/sql-data/land-cover-schema.sql',
+    str(test_folder) + '/sql-data/land-cover.sql',
     ]
 )
 

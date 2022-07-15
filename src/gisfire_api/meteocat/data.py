@@ -95,6 +95,18 @@ def get_measure_of_variable_at_station(station_code: str, variable_code: str):
                 UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
                            auth.current_user()).record_access(db, 400)
                 return jsonify(status_code=400), 400
+        elif (operation_data[0] == 'max') and (len(operation_data) == 2):
+            operation = 'max'
+            try:
+                days = int(operation_data[1])
+                if days < 1:
+                    UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
+                               auth.current_user()).record_access(db, 400)
+                    return jsonify(status_code=400), 400
+            except ValueError as _:
+                UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
+                           auth.current_user()).record_access(db, 400)
+                return jsonify(status_code=400), 400
         else:
             UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
                        auth.current_user()).record_access(db, 400)
@@ -192,4 +204,25 @@ def get_measure_of_variable_at_station(station_code: str, variable_code: str):
         UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
                    auth.current_user()).record_access(db)
         return txt, 200
+    elif operation == 'max':
+        # Retrieve the measure
+        date_to = date
+        date_from = date - datetime.timedelta(days=days)
+        sum: List[Union[float, None]] = db.session.query(func.max(Measure.value)). \
+            filter(Measure.date <= date_to). \
+            filter(Measure.date >= date_from). \
+            filter(Measure.meteocat_weather_station_id == station.id). \
+            filter(Measure.meteocat_variable_id == variable.id).first()
+        if sum[0] is None:
+            UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
+                       auth.current_user()).record_access(db, 400)
+            return jsonify({"status_code": 400, "reason": "Average can't be calculated"}), 400
+        app.json_encoder = Measure.JSONEncoder
+        measure: Measure = Measure(date=date, date_extreme=None, value=sum[0],
+                                   validity_state=MeasureValidityCategory.VALID, time_base=MeasureTimeBaseCategory.SH)
+        txt = jsonify(measure)
+        UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
+                   auth.current_user()).record_access(db)
+        return txt, 200
+
 

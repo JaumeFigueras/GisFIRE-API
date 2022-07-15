@@ -816,14 +816,14 @@ def test_api_meteocat_data_measure_sum_value_01(api, postgresql_schema):
     record = cursor.fetchone()
     count = record[0]
     headers = {'Authorization': 'Basic {}'.format(b64encode(b"jack.skellington:0123456789asdfghjkl").decode("utf-8"))}
-    response = api.get('/v1/meteocat/data/measure/DJ/PPT?date=2018-07-14T05:23:45Z&operation=sum,1', headers=headers)
+    response = api.get('/v1/meteocat/data/measure/DJ/T?date=2018-07-14T05:23:45Z&operation=sum,1', headers=headers)
     assert response.content_type == 'application/json'
     assert response.status_code == 200
     data = json.loads(response.get_data(as_text=True))
     assert len(data) == 5
     assert data['date'] == "2018-07-14T05:23UTC"
     assert data['date_extreme'] is None
-    assert data['value'] == 26.045833333333334
+    assert data['value'] == 1250.2
     cursor = postgresql_schema.cursor()
     cursor.execute("SELECT count(*) FROM user_access")
     record = cursor.fetchone()
@@ -832,9 +832,44 @@ def test_api_meteocat_data_measure_sum_value_01(api, postgresql_schema):
     record = cursor.fetchone()
     assert record[1] == 3
     assert record[2] == '127.0.0.1'
-    assert record[3] == 'http://localhost/v1/meteocat/data/measure/DJ/PPT?date=2018-07-14T05:23:45Z&operation=sum,1'
+    assert record[3] == 'http://localhost/v1/meteocat/data/measure/DJ/T?date=2018-07-14T05:23:45Z&operation=sum,1'
     assert record[4] == 'GET'
     assert json.loads(record[5]) == {"date": "2018-07-14T05:23:45Z", "operation": "sum,1"}
+    assert record[6] == 200
+
+
+def test_api_meteocat_data_measure_max_value_01(api, postgresql_schema):
+    """
+    Tests the average of several measures
+
+    :param api: Flask API fixture
+    :param postgresql_schema: Database fixture
+    :return: None
+    """
+    cursor = postgresql_schema.cursor()
+    cursor.execute("SELECT count(*) FROM user_access")
+    record = cursor.fetchone()
+    count = record[0]
+    headers = {'Authorization': 'Basic {}'.format(b64encode(b"jack.skellington:0123456789asdfghjkl").decode("utf-8"))}
+    response = api.get('/v1/meteocat/data/measure/DJ/T?date=2018-07-14T05:23:45Z&operation=max,1', headers=headers)
+    assert response.content_type == 'application/json'
+    assert response.status_code == 200
+    data = json.loads(response.get_data(as_text=True))
+    assert len(data) == 5
+    assert data['date'] == "2018-07-14T05:23UTC"
+    assert data['date_extreme'] is None
+    assert data['value'] == 31.8
+    cursor = postgresql_schema.cursor()
+    cursor.execute("SELECT count(*) FROM user_access")
+    record = cursor.fetchone()
+    assert record[0] == count + 1
+    cursor.execute("SELECT id, user_id, ip, url, method, params, result_code FROM user_access")
+    record = cursor.fetchone()
+    assert record[1] == 3
+    assert record[2] == '127.0.0.1'
+    assert record[3] == 'http://localhost/v1/meteocat/data/measure/DJ/T?date=2018-07-14T05:23:45Z&operation=max,1'
+    assert record[4] == 'GET'
+    assert json.loads(record[5]) == {"date": "2018-07-14T05:23:45Z", "operation": "max,1"}
     assert record[6] == 200
 
 

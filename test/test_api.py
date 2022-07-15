@@ -20,7 +20,7 @@ def test_database_init_01(postgresql_schema):
     cursor = postgresql_schema.cursor()
     cursor.execute("SELECT count(*) FROM meteocat_lightning")
     record = cursor.fetchone()
-    assert record[0] == 8
+    assert record[0] == 563
 
 
 def test_api_main_entrypoint_01(api, postgresql_schema):
