@@ -24,6 +24,16 @@ from typing import Tuple
 bp = Blueprint("meteocat_lightning", __name__, url_prefix="/v1/meteocat/lightning")
 
 
+# Create the land cover private class
+class LandCover(db.Model):
+    __tablename__ = 'data_catalonia_land_cover'
+    __table_args__ = {'extend_existing': True}
+    fid = db.Column('fid', db.Integer, primary_key=True)
+    id = db.Column('id', db.Integer)
+    nivell_2 = db.Column('nivell_2', db.Integer)
+    geom = db.Column('geom', Geometry(geometry_type='POLYGON', srid=25831))
+
+
 @bp.route('/')
 @bp.route('')
 def main():
@@ -296,13 +306,6 @@ def get_lightning_land_cover(identifier: int):
     :return:
     :rtype:
     """
-    # Create the land cover private class
-    class LandCover(db.Model):
-        __tablename__ = 'data_catalonia_land_cover'
-        fid = db.Column(db.Integer, primary_key=True)
-        id = db.Column(db.Integer)
-        nivell_2 = db.Column(db.Integer)
-        geom = db.Column('geom', Geometry(geometry_type='POLYGON', srid=25831))
 
     # Check the lightning exists
     lightning = db.session.query(Lightning).filter(Lightning.id == identifier).first()
@@ -313,8 +316,10 @@ def get_lightning_land_cover(identifier: int):
     land_cover = db.session.query(LandCover).\
         filter(func.ST_Contains(LandCover.geom, func.ST_Transform(lightning.geometry, 25831))).\
         first()
-    app.json_encoder = Lightning.JSONEncoder
-    txt = jsonify(land_cover_type=land_cover.nivell_2)
+    if land_cover is not None:
+        txt = jsonify(land_cover_type=land_cover.nivell_2)
+    else:
+        txt = jsonify(land_cover_type=0)
     UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
                auth.current_user()).record_access(db)
     return txt, 200
