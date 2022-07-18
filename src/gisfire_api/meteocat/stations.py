@@ -19,7 +19,7 @@ import dateutil.parser
 
 from typing import List
 
-bp = Blueprint("meteocat_stations", __name__, url_prefix="/v1/meteocat/stations")
+bp = Blueprint("meteocat_stations", __name__, url_prefix="/v1/meteocat/station")
 
 
 @bp.route('/')
