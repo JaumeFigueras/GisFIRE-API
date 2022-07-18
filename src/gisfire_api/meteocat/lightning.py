@@ -226,7 +226,27 @@ def get_lightning(identifier):
     :param identifier:
     :return:
     """
-    lightning = db.session.query(Lightning).filter(Lightning.id == identifier).first()
+    srid: int = Lightning.DEFAULT_SRID_LIGHTNINGS
+    hours: int = 6
+    if request.values is not None:
+        if 'srid' in request.values:
+            srid: str = request.values['srid']
+            try:
+                srid: int = int(srid)
+            except ValueError as _:
+                UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
+                           auth.current_user()).record_access(db, 400)
+                return jsonify(status_code=400), 400
+    if srid == Lightning.DEFAULT_SRID_LIGHTNINGS:
+        lightning = db.session.query(Lightning).filter(Lightning.id == identifier).first()
+    else:
+        lightning, x, y = db.session.query(Lightning, func.ST_X(Lightning.geometry.ST_Transform(srid)),
+                                           func.ST_Y(Lightning.geometry.ST_Transform(srid))). \
+            filter(Lightning.id == identifier).first()
+        if lightning is not None:
+            lightning.y = y
+            lightning.x = x
+            lightning.srid = srid
     if lightning is None:
         UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
                    auth.current_user()).record_access(db, 404)
