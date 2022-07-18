@@ -420,7 +420,7 @@ def get_lightnings_group_by(year, month, day):
         lightning_list.append({
             'id': lightning[0],
             'meteocat_id': lightning[1],
-            'date': lightning[2],
+            'date': lightning[2].strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
             'discharges': lightning[3],
             'peak_current_min': lightning[4],
             'peak_current_max': lightning[5],
