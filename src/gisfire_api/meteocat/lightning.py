@@ -372,3 +372,66 @@ def get_lightning_discharge_count(identifier: int):
     UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
                auth.current_user()).record_access(db)
     return txt, 200
+
+
+@bp.route('/grouped_by_discharges/<int:year>/<int:month>/<int:day>/', methods=['GET'])
+@bp.route('/grouped_by_discharges/<int:year>/<int:month>/<int:day>', methods=['GET'])
+@auth.login_required(role='user')
+def get_lightnings_group_by(year, month, day):
+    """
+    TODO:
+
+    :param year:
+    :param month:
+    :param day:
+    :return:
+    """
+
+    # Check if the requested date is valid
+    try:
+        date = datetime.datetime(year, month, day, 0, 0, 0, tzinfo=pytz.UTC)
+    except ValueError:
+        UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
+                   auth.current_user()).record_access(db, 422)
+        return jsonify(status_code=422), 422
+    srid = Lightning.DEFAULT_SRID_LIGHTNINGS
+    if request.values is not None:
+        if 'srid' in request.values:
+            srid: str = request.values['srid']
+            try:
+                srid: int = int(srid)
+            except ValueError as _:
+                UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
+                           auth.current_user()).record_access(db, 400)
+                return jsonify(status_code=400), 400
+    lightnings = db.session.query(func.min(Lightning.id), Lightning.meteocat_id, func.min(Lightning.date),
+                                  func.count(Lightning.id),
+                                  func.min(Lightning.peak_current), func.max(Lightning.peak_current),
+                                  func.avg(Lightning.chi_squared), func.max(Lightning.number_of_sensors),
+                                  func.avg(func.ST_X(Lightning.geometry.ST_Transform(srid))),
+                                  func.avg(func.ST_Y(Lightning.geometry.ST_Transform(srid)))).\
+        filter(Lightning.date >= date).\
+        filter(Lightning.date < (date + datetime.timedelta(days=1))).\
+        group_by(Lightning.meteocat_id).\
+        order_by(Lightning.meteocat_id).\
+        all()
+    lightning_list = list()
+    for lightning in lightnings:
+        lightning_list.append({
+            'id': lightning[0],
+            'meteocat_id': lightning[1],
+            'date': lightning[2],
+            'discharges': lightning[3],
+            'peak_current_min': lightning[4],
+            'peak_current_max': lightning[5],
+            'chi_squared': lightning[6],
+            'number_of_sensors': lightning[7],
+            'x': lightning[8],
+            'y': lightning[9]
+        })
+    txt = jsonify(lightning_list)
+    UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
+               auth.current_user()).record_access(db)
+    return txt, 200
+
+

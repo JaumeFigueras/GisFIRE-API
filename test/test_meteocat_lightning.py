@@ -935,6 +935,45 @@ def test_api_meteocat_count_lightnings_id_00(api, postgresql_schema):
     assert record[6] == 200
 
 
+def test_api_meteocat_discharges_group_lightnings_id_00(api, postgresql_schema):
+    """
+    Tests same day that has some data in the database.
+
+    :param api: Flask API fixture
+    :param postgresql_schema: Database fixture
+    :return: None
+    """
+    cursor = postgresql_schema.cursor()
+    cursor.execute("SELECT count(*) FROM user_access")
+    record = cursor.fetchone()
+    count = record[0]
+    headers = {
+        'Authorization': 'Basic {}'.format(b64encode(b"jack.skellington:0123456789asdfghjkl").decode("utf-8")),
+        'X-Api-Key': '1234'
+    }
+    response = api.get('/v1/meteocat/lightning/grouped_by_discharges/2018/07/16?srid=25831', headers=headers)
+    assert response.content_type == 'application/json'
+    assert response.status_code == 200
+    data = json.loads(response.get_data(as_text=True))
+    print(data)
+    assert len(data) == 32
+    assert data[0]['meteocat_id'] == 16758026
+    cursor = postgresql_schema.cursor()
+    cursor.execute("SELECT count(*) FROM user_access")
+    record = cursor.fetchone()
+    assert record[0] == count + 1
+    cursor.execute("SELECT id, user_id, ip, url, method, params, result_code FROM user_access")
+    record = cursor.fetchone()
+    assert record[1] == 3
+    assert record[2] == '127.0.0.1'
+    assert record[3] == 'http://localhost/v1/meteocat/lightning/grouped_by_discharges/2018/07/16?srid=25831'
+    assert record[4] == 'GET'
+    assert record[5] == '{"srid": "25831"}'
+    assert record[6] == 200
+
+
+
+
 
 
 
