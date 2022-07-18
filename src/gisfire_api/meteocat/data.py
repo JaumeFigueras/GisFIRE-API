@@ -124,7 +124,7 @@ def get_measure_of_variable_at_station(station_code: str, variable_code: str):
     if station is None:
         UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
                    auth.current_user()).record_access(db, 400)
-        return jsonify({"status_code": 400, "reason": "Station not active in provided date"}), 400
+        return jsonify({"status_code": 400, "reason": "Station not active in provided date", "reason_code": "1"}), 400
     # Check the variable is valid for the station in the current date
     variable: Variable = db.session.query(Variable). \
         join(WeatherStationVariableStateAssociation, Variable.id == WeatherStationVariableStateAssociation.meteocat_variable_id). \
@@ -139,7 +139,7 @@ def get_measure_of_variable_at_station(station_code: str, variable_code: str):
     if variable is None:
         UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
                    auth.current_user()).record_access(db, 400)
-        return jsonify({"status_code": 400, "reason": "Variable not active in provided date for selected station"}), 400
+        return jsonify({"status_code": 400, "reason": "Variable not active in provided date for selected station", "reason_code": "2"}), 400
     if operation == 'value':
         # Retrieve the measure
         measure: Measure = db.session.query(Measure). \
@@ -150,15 +150,15 @@ def get_measure_of_variable_at_station(station_code: str, variable_code: str):
         if measure is None:
             UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
                        auth.current_user()).record_access(db, 400)
-            return jsonify({"status_code": 400, "reason": "Measure not found"}), 400
+            return jsonify({"status_code": 400, "reason": "Measure not found", "reason_code": "3"}), 400
         else:
             # TODO: Check time depending on variable time base
-            max_distance: int = 30 * 60  # Seconds in a SH (30 min) measure and variable
+            max_distance: int = 30 * 60 * 4 # Seconds in a SH (30 min) measure and variable
             delta: datetime.timedelta = date - measure.date
             if (delta.days > 0) or (delta.seconds >= max_distance):
                 UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
                            auth.current_user()).record_access(db, 400)
-                return jsonify({"status_code": 400, "reason": "Measure date found"}), 400
+                return jsonify({"status_code": 400, "reason": "Measure date not found", "reason_code": "4"}), 400
         app.json_encoder = Measure.JSONEncoder
         txt = jsonify(measure)
         UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
