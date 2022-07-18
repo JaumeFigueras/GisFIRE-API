@@ -343,3 +343,32 @@ def get_lightning_land_cover(identifier: int):
     UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
                auth.current_user()).record_access(db)
     return txt, 200
+
+
+@bp.route('/discharge_count/<int:identifier>/', methods=['GET'])
+@bp.route('/discharge_count/<int:identifier>', methods=['GET'])
+@auth.login_required(role='user')
+def get_lightning_discharge_count(identifier: int):
+    """
+    TODO:
+
+    :return:
+    :rtype:
+    """
+
+    # Check the lightning exists
+    lightning = db.session.query(Lightning).filter(Lightning.id == identifier).first()
+    if lightning is None:
+        UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
+                   auth.current_user()).record_access(db, 404)
+        return jsonify(status_code=404), 404
+    count = db.session.query(func.count(Lightning)).\
+        filter(Lightning.meteocat_id == lightning.meteocat_id).\
+        first()
+    if count is not None:
+        txt = jsonify(count=count[0])
+    else:
+        txt = jsonify(count=1)
+    UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
+               auth.current_user()).record_access(db)
+    return txt, 200
