@@ -196,7 +196,7 @@ def get_measure_of_variable_at_station(station_code: str, variable_code: str):
         if sum[0] is None:
             UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
                        auth.current_user()).record_access(db, 400)
-            return jsonify({"status_code": 400, "reason": "Average can't be calculated"}), 400
+            return jsonify({"status_code": 400, "reason": "Sum can't be calculated"}), 400
         app.json_encoder = Measure.JSONEncoder
         measure: Measure = Measure(date=date, date_extreme=None, value=sum[0],
                                    validity_state=MeasureValidityCategory.VALID, time_base=MeasureTimeBaseCategory.SH)
@@ -216,7 +216,7 @@ def get_measure_of_variable_at_station(station_code: str, variable_code: str):
         if sum[0] is None:
             UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
                        auth.current_user()).record_access(db, 400)
-            return jsonify({"status_code": 400, "reason": "Average can't be calculated"}), 400
+            return jsonify({"status_code": 400, "reason": "Maz can't be calculated"}), 400
         app.json_encoder = Measure.JSONEncoder
         measure: Measure = Measure(date=date, date_extreme=None, value=sum[0],
                                    validity_state=MeasureValidityCategory.VALID, time_base=MeasureTimeBaseCategory.SH)

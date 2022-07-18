@@ -519,7 +519,7 @@ def test_api_meteocat_data_measure_parameters_14(api, postgresql_schema):
     assert response.content_type == 'application/json'
     assert response.status_code == 400
     data = json.loads(response.get_data(as_text=True))
-    assert len(data) == 2
+    assert len(data) == 3
     assert data['status_code'] == 400
     cursor = postgresql_schema.cursor()
     cursor.execute("SELECT count(*) FROM user_access")
@@ -552,7 +552,7 @@ def test_api_meteocat_data_measure_parameters_15(api, postgresql_schema):
     assert response.content_type == 'application/json'
     assert response.status_code == 400
     data = json.loads(response.get_data(as_text=True))
-    assert len(data) == 2
+    assert len(data) == 3
     assert data['status_code'] == 400
     cursor = postgresql_schema.cursor()
     cursor.execute("SELECT count(*) FROM user_access")
@@ -585,7 +585,7 @@ def test_api_meteocat_data_measure_parameters_16(api, postgresql_schema):
     assert response.content_type == 'application/json'
     assert response.status_code == 400
     data = json.loads(response.get_data(as_text=True))
-    assert len(data) == 2
+    assert len(data) == 3
     assert data['status_code'] == 400
     cursor = postgresql_schema.cursor()
     cursor.execute("SELECT count(*) FROM user_access")
@@ -618,7 +618,7 @@ def test_api_meteocat_data_measure_parameters_17(api, postgresql_schema):
     assert response.content_type == 'application/json'
     assert response.status_code == 400
     data = json.loads(response.get_data(as_text=True))
-    assert len(data) == 2
+    assert len(data) == 3
     assert data['status_code'] == 400
     cursor = postgresql_schema.cursor()
     cursor.execute("SELECT count(*) FROM user_access")
@@ -719,7 +719,7 @@ def test_api_meteocat_data_measure_value_02(api, postgresql_schema):
     assert response.content_type == 'application/json'
     assert response.status_code == 400
     data = json.loads(response.get_data(as_text=True))
-    assert len(data) == 2
+    assert len(data) == 3
     assert data['status_code'] == 400
     cursor = postgresql_schema.cursor()
     cursor.execute("SELECT count(*) FROM user_access")

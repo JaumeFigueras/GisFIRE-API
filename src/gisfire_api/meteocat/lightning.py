@@ -362,7 +362,7 @@ def get_lightning_discharge_count(identifier: int):
         UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
                    auth.current_user()).record_access(db, 404)
         return jsonify(status_code=404), 404
-    count = db.session.query(func.count(Lightning)).\
+    count = db.session.query(func.count(Lightning.meteocat_id)).\
         filter(Lightning.meteocat_id == lightning.meteocat_id).\
         first()
     if count is not None:
