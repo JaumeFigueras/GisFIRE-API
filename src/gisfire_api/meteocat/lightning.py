@@ -426,8 +426,8 @@ def get_lightnings_group_by(year, month, day):
             'peak_current_max': lightning[5],
             'chi_squared': lightning[6],
             'number_of_sensors': lightning[7],
-            'x': lightning[8],
-            'y': lightning[9]
+            'coordinates_x': lightning[8],
+            'coordinates_y': lightning[9]
         })
     txt = jsonify(lightning_list)
     UserAccess(request.remote_addr, request.url, request.method, json.dumps(dict(request.values)),
